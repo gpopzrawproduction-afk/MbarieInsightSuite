@@ -1,0 +1,31 @@
+<Application xmlns="https://github.com/avaloniaui"
+xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+xmlns:conv="using:MIC.Desktop.Avalonia.Converters"
+x:Class="MIC.Desktop.Avalonia.App"
+xmlns:local="using:MIC.Desktop.Avalonia"
+RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://MIC.Desktop.Avalonia/Styles/ColorPalette.axaml" />
+                <ResourceInclude Source="avares://MIC.Desktop.Avalonia/Themes/DarkTheme.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Converters -->
+            <conv:BoolToRefreshIconConverter x:Key="BoolToRefreshIcon" />
+            <conv:BoolToRefreshColorConverter x:Key="BoolToRefreshColor" />
+        </ResourceDictionary>
+    </Application.Resources>
+  
+	<Application.Styles>
+	    <FluentTheme />
+	    <StyleInclude Source="avares://MIC.Desktop.Avalonia/Styles/Styles.axaml" />
+	    <StyleInclude Source="avares://MIC.Desktop.Avalonia/Styles/DashboardTheme.axaml" />
+	</Application.Styles>
+    
+</Application>

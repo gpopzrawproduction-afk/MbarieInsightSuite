@@ -1,0 +1,17 @@
+Combined coverage snapshot generated 2026-02-07 06:29 UTC
+
+Assemblies analyzed: 8
+Classes analyzed: 300
+Files analyzed: 262
+
+Line coverage: 13.10% (3613 of 27403 coverable lines)
+Branch coverage: 12.20% (566 of 4624 branches)
+Method coverage: 29.40% (870 of 2957 methods)
+Full method coverage: 23.80% (705 of 2957 methods)
+
+Notable observations:
+- MIC.Core.Application aggregate coverage at 70.70% driven by alert and authentication handlers.
+- MIC.Desktop.Avalonia currently at 5.90%; notification bridge sits at 95.00% after new integration scenarios.
+- MIC.Core.Intelligence remains 0%; plan follow-up integration/E2E work to exercise sync services.
+
+Source coberturas merged via ReportGenerator using **/coverage.cobertura.xml inputs.

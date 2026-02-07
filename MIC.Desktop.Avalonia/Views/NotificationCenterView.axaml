@@ -1,0 +1,174 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MIC.Desktop.Avalonia.ViewModels"
+             xmlns:services="using:MIC.Desktop.Avalonia.Services"
+             x:Class="MIC.Desktop.Avalonia.Views.NotificationCenterView"
+             x:Name="Root"
+             x:DataType="vm:NotificationCenterViewModel"
+             mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="600">
+
+    <Border Background="#1E1B29F5" Padding="16" CornerRadius="16">
+        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                <StackPanel Orientation="Vertical" Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <TextBlock Text="Notification Center"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="#FFFFFF" />
+                    <TextBlock Text="Stay on top of recent activity"
+                               FontSize="12"
+                               Foreground="#A0AEC0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Content="Mark all read"
+                            Command="{Binding MarkAllAsReadCommand}"
+                            Background="#3F365A"
+                            BorderBrush="Transparent"
+                            Foreground="#E2E8F0"
+                            CornerRadius="8"
+                            Padding="12,6" />
+                    <Button Content="Clear"
+                            Command="{Binding ClearCommand}"
+                            Background="#3F365A"
+                            BorderBrush="Transparent"
+                            Foreground="#E2E8F0"
+                            CornerRadius="8"
+                            Padding="12,6" />
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12">
+                <ComboBox Width="160"
+                          ItemsSource="{Binding CategoryFilters}"
+                          SelectedItem="{Binding SelectedCategory}"
+                          HorizontalAlignment="Stretch"
+                          Background="#241D34"
+                          BorderBrush="#3F365A">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Label}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ComboBox Width="140"
+                          ItemsSource="{Binding SeverityFilters}"
+                          SelectedItem="{Binding SelectedSeverity}"
+                          HorizontalAlignment="Stretch"
+                          Background="#241D34"
+                          BorderBrush="#3F365A">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Label}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ToggleSwitch IsChecked="{Binding ShowUnreadOnly}"
+                              VerticalAlignment="Center"
+                              Foreground="#E2E8F0"
+                              Content="Unread only" />
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="12">
+                    <Border Background="#2A2440F5"
+                            BorderBrush="#392F5F"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="16"
+                            IsVisible="{Binding HasNoNotifications}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="You're all caught up!"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FFFFFF" />
+                            <TextBlock Text="We'll let you know when something new happens."
+                                       FontSize="12"
+                                       Foreground="#A0AEC0" />
+                        </StackPanel>
+                    </Border>
+
+                    <ItemsControl ItemsSource="{Binding Notifications}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type services:NotificationEntry}">
+                                <Border Background="#2A2440F5"
+                                        BorderBrush="#392F5F"
+                                        BorderThickness="1"
+                                        CornerRadius="12"
+                                        Padding="12"
+                                        Margin="0,0,0,12">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12">
+                                        <Border Grid.RowSpan="2"
+                                                Width="36"
+                                                Height="36"
+                                                CornerRadius="12"
+                                                Background="#352C4F"
+                                                VerticalAlignment="Top">
+                                            <TextBlock Text="{Binding Icon}"
+                                                       FontSize="18"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                        </Border>
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Title}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#FFFFFF" />
+
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding TimeAgo}"
+                                                   FontSize="12"
+                                                   Foreground="#A0AEC0"
+                                                   HorizontalAlignment="Right" />
+
+                                        <TextBlock Grid.Row="1"
+                                                   Grid.Column="1"
+                                                   Grid.ColumnSpan="2"
+                                                   Text="{Binding Message}"
+                                                   FontSize="12"
+                                                   Foreground="#C3CCE3"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,4,0,0" />
+
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                                                    Orientation="Horizontal"
+                                                    Spacing="8"
+                                                    Margin="0,12,0,0">
+                                            <Button Content="Mark read"
+                                                    Command="{Binding DataContext.MarkAsReadCommand, ElementName=Root}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#3F365A"
+                                                    BorderBrush="Transparent"
+                                                    Foreground="#E2E8F0"
+                                                    CornerRadius="8"
+                                                    Padding="10,6" />
+                                            <Button Content="Dismiss"
+                                                    Command="{Binding DataContext.DismissCommand, ElementName=Root}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#3F365A"
+                                                    BorderBrush="Transparent"
+                                                    Foreground="#E2E8F0"
+                                                    CornerRadius="8"
+                                                    Padding="10,6" />
+                                            <Border Background="#3F365A"
+                                                    CornerRadius="8"
+                                                    Padding="10,6"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Category}"
+                                                           FontSize="11"
+                                                           Foreground="#C3CCE3" />
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</UserControl>

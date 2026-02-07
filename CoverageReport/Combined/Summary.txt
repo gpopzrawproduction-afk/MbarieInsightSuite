@@ -1,0 +1,336 @@
+Summary
+  Generated on: 07/02/2026 - 06:29:43
+  Coverage date: 04/02/2026 - 11:34:19 - 07/02/2026 - 06:29:18
+  Parser: MultiReport (7x Cobertura)
+  Assemblies: 8
+  Classes: 300
+  Files: 262
+  Line coverage: 13.1%
+  Covered lines: 3613
+  Uncovered lines: 23790
+  Coverable lines: 27403
+  Total lines: 42831
+  Branch coverage: 12.2% (566 of 4624)
+  Covered branches: 566
+  Total branches: 4624
+  Method coverage: 29.4% (870 of 2957)
+  Full method coverage: 23.8% (705 of 2957)
+  Covered methods: 870
+  Fully covered methods: 705
+  Total methods: 2957
+
+MIC.Core.Application                                                                            70.7%
+  MIC.Core.Application.Alerts.Commands.CreateAlert.CreateAlertCommand                            100%
+  MIC.Core.Application.Alerts.Commands.CreateAlert.CreateAlertCommandHandler                     100%
+  MIC.Core.Application.Alerts.Commands.CreateAlert.CreateAlertCommandValidator                   100%
+  MIC.Core.Application.Alerts.Commands.DeleteAlert.DeleteAlertCommand                            100%
+  MIC.Core.Application.Alerts.Commands.DeleteAlert.DeleteAlertCommandHandler                     100%
+  MIC.Core.Application.Alerts.Commands.DeleteAlert.DeleteAlertCommandValidator                   100%
+  MIC.Core.Application.Alerts.Commands.UpdateAlert.UpdateAlertCommand                            100%
+  MIC.Core.Application.Alerts.Commands.UpdateAlert.UpdateAlertCommandHandler                    63.5%
+  MIC.Core.Application.Alerts.Commands.UpdateAlert.UpdateAlertCommandValidator                   100%
+  MIC.Core.Application.Alerts.Common.AlertDto                                                   43.7%
+  MIC.Core.Application.Alerts.Common.AlertMappingExtensions                                      100%
+  MIC.Core.Application.Alerts.Queries.GetAlertById.GetAlertByIdQuery                             100%
+  MIC.Core.Application.Alerts.Queries.GetAlertById.GetAlertByIdQueryHandler                      100%
+  MIC.Core.Application.Alerts.Queries.GetAllAlerts.GetAllAlertsQuery                             100%
+  MIC.Core.Application.Alerts.Queries.GetAllAlerts.GetAllAlertsQueryHandler                      100%
+  MIC.Core.Application.Authentication.AuthenticationResult                                       100%
+  MIC.Core.Application.Authentication.Commands.LoginCommand.LoginCommand                         100%
+  MIC.Core.Application.Authentication.Commands.LoginCommand.LoginCommandHandler                 88.6%
+  MIC.Core.Application.Authentication.Commands.LoginCommand.LoginCommandValidator                100%
+  MIC.Core.Application.Authentication.Commands.RegisterUserCommand.RegisterUserCommand           100%
+  MIC.Core.Application.Authentication.Commands.RegisterUserCommand.RegisterUserCommandHandler   95.2%
+  MIC.Core.Application.Authentication.Common.LoginResult                                         100%
+  MIC.Core.Application.Authentication.Common.UserDto                                             100%
+  MIC.Core.Application.Chat.Commands.ClearChatSession.ClearChatSessionCommand                      0%
+  MIC.Core.Application.Chat.Commands.ClearChatSession.ClearChatSessionCommandHandler               0%
+  MIC.Core.Application.Chat.Commands.SaveChatInteraction.SaveChatInteractionCommand              100%
+  MIC.Core.Application.Chat.Commands.SaveChatInteraction.SaveChatInteractionCommandHandler       100%
+  MIC.Core.Application.Chat.Queries.GetChatHistory.ChatMessageDto                                  0%
+  MIC.Core.Application.Chat.Queries.GetChatHistory.GetChatHistoryQuery                             0%
+  MIC.Core.Application.Chat.Queries.GetChatHistory.GetChatHistoryQueryHandler                      0%
+  MIC.Core.Application.Common.Interfaces.AISettings                                             61.1%
+  MIC.Core.Application.Common.Interfaces.AppSettings                                              50%
+  MIC.Core.Application.Common.Interfaces.AttachmentStoreResult                                     0%
+  MIC.Core.Application.Common.Interfaces.EmailAttachment                                           0%
+  MIC.Core.Application.Common.Interfaces.EmailSendResult                                           0%
+  MIC.Core.Application.Common.Interfaces.EmailSyncResult                                           0%
+  MIC.Core.Application.Common.Interfaces.EmailSyncSettings                                        50%
+  MIC.Core.Application.Common.Interfaces.ErrorContext                                              0%
+  MIC.Core.Application.Common.Interfaces.GeneralSettings                                          50%
+  MIC.Core.Application.Common.Interfaces.IEmailSyncService                                         0%
+  MIC.Core.Application.Common.Interfaces.KnowledgeEntry                                         57.8%
+  MIC.Core.Application.Common.Interfaces.NotificationSettings                                     50%
+  MIC.Core.Application.Common.Interfaces.OAuthResult                                            85.7%
+  MIC.Core.Application.Common.Interfaces.SettingsChangedEventArgs                               62.5%
+  MIC.Core.Application.Common.Interfaces.SettingsSyncStatus                                      100%
+  MIC.Core.Application.Common.Interfaces.StoredOAuthToken                                        100%
+  MIC.Core.Application.Common.Interfaces.UISettings                                               50%
+  MIC.Core.Application.Configuration.ConfigurationException                                        0%
+  MIC.Core.Application.Configuration.JwtSettings                                                 100%
+  MIC.Core.Application.DependencyInjection                                                       100%
+  MIC.Core.Application.Email.Commands.AddEmailAccount.AddEmailAccountCommand                     100%
+  MIC.Core.Application.Email.Commands.AddEmailAccount.AddEmailAccountCommandHandler             56.1%
+  MIC.Core.Application.Emails.Common.EmailAccountDto                                               0%
+  MIC.Core.Application.Emails.Common.EmailAttachmentDto                                           25%
+  MIC.Core.Application.Emails.Common.EmailDto                                                   43.4%
+  MIC.Core.Application.Emails.Queries.GetEmailById.GetEmailByIdQuery                             100%
+  MIC.Core.Application.Emails.Queries.GetEmailById.GetEmailByIdQueryHandler                      100%
+  MIC.Core.Application.Emails.Queries.GetEmails.GetEmailsQuery                                  81.2%
+  MIC.Core.Application.Emails.Queries.GetEmails.GetEmailsQueryHandler                            100%
+  MIC.Core.Application.KnowledgeBase.Commands.UploadDocument.Result                              100%
+  MIC.Core.Application.KnowledgeBase.Commands.UploadDocument.UploadDocumentCommand               100%
+  MIC.Core.Application.KnowledgeBase.Commands.UploadDocument.UploadDocumentCommandHandler         93%
+  MIC.Core.Application.Metrics.Common.MetricCategorySummary                                        0%
+  MIC.Core.Application.Metrics.Common.MetricDataPoint                                             50%
+  MIC.Core.Application.Metrics.Common.MetricDto                                                 26.1%
+  MIC.Core.Application.Metrics.Common.MetricMappingExtensions                                    100%
+  MIC.Core.Application.Metrics.Common.MetricTrendDto                                            62.5%
+  MIC.Core.Application.Metrics.Queries.GetMetrics.GetMetricsQuery                                100%
+  MIC.Core.Application.Metrics.Queries.GetMetrics.GetMetricsQueryHandler                         100%
+  MIC.Core.Application.Metrics.Queries.GetMetricTrend.GetMetricTrendQuery                        100%
+  MIC.Core.Application.Metrics.Queries.GetMetricTrend.GetMetricTrendQueryHandler                 100%
+  MIC.Core.Application.Settings.Commands.SaveSettings.SaveSettingsCommand                        100%
+  MIC.Core.Application.Settings.Commands.SaveSettings.SaveSettingsCommandHandler                 100%
+  MIC.Core.Application.Settings.Queries.GetSettings.GetSettingsQuery                             100%
+  MIC.Core.Application.Settings.Queries.GetSettings.GetSettingsQueryHandler                      100%
+
+MIC.Core.Domain                                                                                 40.9%
+  MIC.Core.Domain.Abstractions.BaseEntity                                                       78.5%
+  MIC.Core.Domain.Entities.AIRecommendationGeneratedEvent                                          0%
+  MIC.Core.Domain.Entities.AlertAcknowledgedEvent                                                100%
+  MIC.Core.Domain.Entities.AlertMetadataUpdatedEvent                                             100%
+  MIC.Core.Domain.Entities.AlertResolvedEvent                                                    100%
+  MIC.Core.Domain.Entities.AssetHealthDegradedEvent                                                0%
+  MIC.Core.Domain.Entities.AssetMonitor                                                            0%
+  MIC.Core.Domain.Entities.AssetStatusChangedEvent                                                 0%
+  MIC.Core.Domain.Entities.ChatHistory                                                          61.7%
+  MIC.Core.Domain.Entities.DecisionContext                                                         0%
+  MIC.Core.Domain.Entities.DecisionMadeEvent                                                       0%
+  MIC.Core.Domain.Entities.EmailAccount                                                         24.8%
+  MIC.Core.Domain.Entities.EmailAttachment                                                      29.6%
+  MIC.Core.Domain.Entities.EmailMessage                                                         80.2%
+  MIC.Core.Domain.Entities.IntelligenceAlert                                                    88.7%
+  MIC.Core.Domain.Entities.OperationalMetric                                                    70.8%
+  MIC.Core.Domain.Entities.Setting                                                               100%
+  MIC.Core.Domain.Entities.SettingHistory                                                        100%
+  MIC.Core.Domain.Entities.User                                                                  100%
+  MIC.Core.Domain.Entities.UserSettings                                                            0%
+  MIC.Core.Domain.Exceptions.DatabaseException                                                     0%
+  MIC.Core.Domain.Exceptions.EmailAuthException                                                    0%
+  MIC.Core.Domain.Exceptions.EmailException                                                        0%
+  MIC.Core.Domain.Exceptions.EmailSyncException                                                    0%
+  MIC.Core.Domain.Exceptions.MICException                                                          0%
+  MIC.Core.Domain.Exceptions.NotificationException                                                 0%
+  MIC.Core.Domain.Exceptions.SettingsException                                                     0%
+  MIC.Core.Domain.Predictions.Prediction                                                           0%
+  MIC.Core.Domain.Settings.EmailSyncSettings                                                       0%
+
+MIC.Core.Intelligence                                                                              0%
+  MIC.Core.Intelligence.CommunicationAnalysis                                                      0%
+  MIC.Core.Intelligence.DependencyInjection                                                        0%
+  MIC.Core.Intelligence.EmailSyncService                                                           0%
+  MIC.Core.Intelligence.ExternalAttachment                                                         0%
+  MIC.Core.Intelligence.ExternalEmail                                                              0%
+  MIC.Core.Intelligence.FolderSyncResult                                                           0%
+  MIC.Core.Intelligence.IntelligenceProcessor                                                      0%
+  MIC.Core.Intelligence.PositionQuestionnaireService                                               0%
+  MIC.Core.Intelligence.Predictions.PredictiveAnalyticsService                                     0%
+  MIC.Core.Intelligence.Question                                                                   0%
+  MIC.Core.Intelligence.SyncResult                                                                 0%
+
+MIC.Desktop.Avalonia                                                                             5.9%
+  CompiledAvaloniaXaml.!AvaloniaResources                                                          0%
+  MIC.Desktop.Avalonia.App                                                                         0%
+  MIC.Desktop.Avalonia.Controls.CommandPalette                                                     0%
+  MIC.Desktop.Avalonia.Controls.EmptyState                                                         0%
+  MIC.Desktop.Avalonia.Controls.LoadingSpinner                                                     0%
+  MIC.Desktop.Avalonia.Controls.StatCard                                                           0%
+  MIC.Desktop.Avalonia.Controls.ToastContainer                                                     0%
+  MIC.Desktop.Avalonia.Controls.UserProfilePanel                                                   0%
+  MIC.Desktop.Avalonia.Converters.BoolConverters                                                   0%
+  MIC.Desktop.Avalonia.Converters.BoolToFontWeightConverter                                        0%
+  MIC.Desktop.Avalonia.Converters.BoolToGreenConverter                                             0%
+  MIC.Desktop.Avalonia.Converters.BoolToNavForegroundConverter                                     0%
+  MIC.Desktop.Avalonia.Converters.BoolToNavItemClassConverter                                      0%
+  MIC.Desktop.Avalonia.Converters.BoolToPathIconColorConverter                                     0%
+  MIC.Desktop.Avalonia.Converters.BoolToRefreshColorConverter                                      0%
+  MIC.Desktop.Avalonia.Converters.BoolToRefreshIconConverter                                       0%
+  MIC.Desktop.Avalonia.Converters.BoolToStringConverter                                            0%
+  MIC.Desktop.Avalonia.Converters.ZeroToBoolConverter                                              0%
+  MIC.Desktop.Avalonia.DatabaseTest                                                                0%
+  MIC.Desktop.Avalonia.Program                                                                   0.7%
+  MIC.Desktop.Avalonia.Resources.ResourceHelper                                                    0%
+  MIC.Desktop.Avalonia.Services.AlertEvent                                                      71.4%
+  MIC.Desktop.Avalonia.Services.DataUpdateEvent                                                   75%
+  MIC.Desktop.Avalonia.Services.ErrorHandlingService                                               0%
+  MIC.Desktop.Avalonia.Services.ExportService                                                      0%
+  MIC.Desktop.Avalonia.Services.KeyboardShortcutService                                            0%
+  MIC.Desktop.Avalonia.Services.MetricEvent                                                        0%
+  MIC.Desktop.Avalonia.Services.NavigationService                                                  0%
+  MIC.Desktop.Avalonia.Services.NotificationEntry                                               31.8%
+  MIC.Desktop.Avalonia.Services.NotificationEventBridge                                           95%
+  MIC.Desktop.Avalonia.Services.NotificationRecord                                                 0%
+  MIC.Desktop.Avalonia.Services.NotificationService                                                0%
+  MIC.Desktop.Avalonia.Services.PredictionExportRow                                                0%
+  MIC.Desktop.Avalonia.Services.RealTimeDataService                                              5.1%
+  MIC.Desktop.Avalonia.Services.SecretProvider                                                     0%
+  MIC.Desktop.Avalonia.Services.SettingsService                                                    0%
+  MIC.Desktop.Avalonia.Services.ShortcutInfo                                                       0%
+  MIC.Desktop.Avalonia.Services.ThemeChangedEventArgs                                              0%
+  MIC.Desktop.Avalonia.Services.ToastNotification                                                100%
+  MIC.Desktop.Avalonia.Services.UpdateService                                                     49%
+  MIC.Desktop.Avalonia.Services.UserPreferences                                                  100%
+  MIC.Desktop.Avalonia.Services.UserSession                                                      100%
+  MIC.Desktop.Avalonia.Services.UserSessionService                                              73.3%
+  MIC.Desktop.Avalonia.Services.UserSettings                                                       0%
+  MIC.Desktop.Avalonia.Styles.BrandColors                                                          0%
+  MIC.Desktop.Avalonia.ViewLocator                                                                 0%
+  MIC.Desktop.Avalonia.ViewModels.AddEmailAccountViewModel                                         0%
+  MIC.Desktop.Avalonia.ViewModels.AlertDetailsViewModel                                            0%
+  MIC.Desktop.Avalonia.ViewModels.AlertListViewModel                                               0%
+  MIC.Desktop.Avalonia.ViewModels.AlertSeverityToColorConverter                                    0%
+  MIC.Desktop.Avalonia.ViewModels.AlertStatusToActiveConverter                                     0%
+  MIC.Desktop.Avalonia.ViewModels.AlertStatusToColorConverter                                      0%
+  MIC.Desktop.Avalonia.ViewModels.CategoryOption                                                 100%
+  MIC.Desktop.Avalonia.ViewModels.ChatMessageViewModel                                             0%
+  MIC.Desktop.Avalonia.ViewModels.ChatViewModel                                                    0%
+  MIC.Desktop.Avalonia.ViewModels.CommandItem                                                      0%
+  MIC.Desktop.Avalonia.ViewModels.CommandPaletteViewModel                                          0%
+  MIC.Desktop.Avalonia.ViewModels.ComposeEmailViewModel                                            0%
+  MIC.Desktop.Avalonia.ViewModels.CreateAlertViewModel                                             0%
+  MIC.Desktop.Avalonia.ViewModels.DashboardAlertViewModel                                          0%
+  MIC.Desktop.Avalonia.ViewModels.DashboardEmailViewModel                                          0%
+  MIC.Desktop.Avalonia.ViewModels.DashboardPredictionViewModel                                     0%
+  MIC.Desktop.Avalonia.ViewModels.DashboardViewModel                                               0%
+  MIC.Desktop.Avalonia.ViewModels.DialogBaseViewModel                                              0%
+  MIC.Desktop.Avalonia.ViewModels.EditAlertViewModel                                               0%
+  MIC.Desktop.Avalonia.ViewModels.EmailInboxViewModel                                           35.1%
+  MIC.Desktop.Avalonia.ViewModels.FirstTimeSetupDialogViewModel                                    0%
+  MIC.Desktop.Avalonia.ViewModels.FolderOption                                                   100%
+  MIC.Desktop.Avalonia.ViewModels.KnowledgeBaseViewModel                                        39.2%
+  MIC.Desktop.Avalonia.ViewModels.KnowledgeEntryViewModel                                        100%
+  MIC.Desktop.Avalonia.ViewModels.KpiCardViewModel                                                 0%
+  MIC.Desktop.Avalonia.ViewModels.LoginViewModel                                                   0%
+  MIC.Desktop.Avalonia.ViewModels.MainWindowViewModel                                              0%
+  MIC.Desktop.Avalonia.ViewModels.MetricsDashboardViewModel                                        0%
+  MIC.Desktop.Avalonia.ViewModels.NotificationCenterViewModel                                      0%
+  MIC.Desktop.Avalonia.ViewModels.NotificationFilterOption<T>                                      0%
+  MIC.Desktop.Avalonia.ViewModels.NotificationItem                                                 0%
+  MIC.Desktop.Avalonia.ViewModels.PredictionsViewModel                                             0%
+  MIC.Desktop.Avalonia.ViewModels.PredictionViewModel                                              0%
+  MIC.Desktop.Avalonia.ViewModels.PriorityOption                                                 100%
+  MIC.Desktop.Avalonia.ViewModels.ProgressToWidthConverter                                         0%
+  MIC.Desktop.Avalonia.ViewModels.SettingsViewModel                                                0%
+  MIC.Desktop.Avalonia.ViewModels.SeverityFilterItem                                               0%
+  MIC.Desktop.Avalonia.ViewModels.SplashViewModel                                                  0%
+  MIC.Desktop.Avalonia.ViewModels.StatusFilterItem                                                 0%
+  MIC.Desktop.Avalonia.ViewModels.UpdateViewModel                                                  0%
+  MIC.Desktop.Avalonia.ViewModels.UserProfileViewModel                                             0%
+  MIC.Desktop.Avalonia.Views.AboutDialog                                                           0%
+  MIC.Desktop.Avalonia.Views.AboutWindow                                                           0%
+  MIC.Desktop.Avalonia.Views.AddEmailAccountWindow                                                 0%
+  MIC.Desktop.Avalonia.Views.AlertDetailsView                                                      0%
+  MIC.Desktop.Avalonia.Views.AlertListView                                                         0%
+  MIC.Desktop.Avalonia.Views.ChatView                                                              0%
+  MIC.Desktop.Avalonia.Views.CreateAlertDialog                                                     0%
+  MIC.Desktop.Avalonia.Views.DashboardView                                                         0%
+  MIC.Desktop.Avalonia.Views.Dialogs.AddEmailAccountDialog                                         0%
+  MIC.Desktop.Avalonia.Views.Dialogs.ComposeEmailDialog                                            0%
+  MIC.Desktop.Avalonia.Views.Dialogs.EmailAccountSettings                                          0%
+  MIC.Desktop.Avalonia.Views.Dialogs.FirstTimeSetupDialog                                          0%
+  MIC.Desktop.Avalonia.Views.EditAlertDialog                                                       0%
+  MIC.Desktop.Avalonia.Views.EmailInboxView                                                        0%
+  MIC.Desktop.Avalonia.Views.KeyboardShortcutsDialog                                               0%
+  MIC.Desktop.Avalonia.Views.KnowledgeBaseView                                                     0%
+  MIC.Desktop.Avalonia.Views.LoginWindow                                                           0%
+  MIC.Desktop.Avalonia.Views.MainWindow                                                            0%
+  MIC.Desktop.Avalonia.Views.MetricsDashboardView                                                  0%
+  MIC.Desktop.Avalonia.Views.NotificationCenterView                                                0%
+  MIC.Desktop.Avalonia.Views.OnboardingTourDialog                                                  0%
+  MIC.Desktop.Avalonia.Views.PredictionsView                                                       0%
+  MIC.Desktop.Avalonia.Views.SearchHelpDialog                                                      0%
+  MIC.Desktop.Avalonia.Views.SettingsView                                                          0%
+  MIC.Desktop.Avalonia.Views.ShortcutCustomizationDialog                                           0%
+  MIC.Desktop.Avalonia.Views.SplashWindow                                                          0%
+  MIC.Desktop.Avalonia.Views.UpdateView                                                            0%
+
+MIC.Infrastructure.AI                                                                              0%
+  MIC.Infrastructure.AI.Configuration.AIFeatureFlags                                               0%
+  MIC.Infrastructure.AI.Configuration.AISettings                                                   0%
+  MIC.Infrastructure.AI.Configuration.AzureOpenAISettings                                          0%
+  MIC.Infrastructure.AI.Configuration.OpenAISettings                                               0%
+  MIC.Infrastructure.AI.Configuration.SystemPromptSettings                                         0%
+  MIC.Infrastructure.AI.DependencyInjection                                                        0%
+  MIC.Infrastructure.AI.Models.AIInsight                                                           0%
+  MIC.Infrastructure.AI.Models.ChatCompletionResult                                                0%
+  MIC.Infrastructure.AI.Models.ChatMessage                                                         0%
+  MIC.Infrastructure.AI.Models.TokenUsage                                                          0%
+  MIC.Infrastructure.AI.Plugins.AlertsPlugin                                                       0%
+  MIC.Infrastructure.AI.Plugins.MetricsPlugin                                                      0%
+  MIC.Infrastructure.AI.Services.EmailAnalysisResult                                               0%
+  MIC.Infrastructure.AI.Services.ForecastPoint                                                     0%
+  MIC.Infrastructure.AI.Services.InsightGeneratorService                                           0%
+  MIC.Infrastructure.AI.Services.PredictionService                                                 0%
+  MIC.Infrastructure.AI.Services.RealChatService                                                   0%
+  MIC.Infrastructure.AI.Services.RealEmailAnalysisService                                          0%
+  MIC.Infrastructure.AI.Services.SemanticKernelConfig                                              0%
+  MIC.Infrastructure.AI.StubChatService                                                            0%
+
+MIC.Infrastructure.Data                                                                           10%
+  MIC.Infrastructure.Data.Configuration.DatabaseSettings                                           0%
+  MIC.Infrastructure.Data.DependencyInjection                                                   50.9%
+  MIC.Infrastructure.Data.Migrations.AddUserEntity                                                 0%
+  MIC.Infrastructure.Data.Migrations.AddUserSettingsAndChatHistory                                 0%
+  MIC.Infrastructure.Data.Migrations.FinalizeModel                                                 0%
+  MIC.Infrastructure.Data.Migrations.InitialCreate                                                 0%
+  MIC.Infrastructure.Data.Migrations.MicDbContextModelSnapshot                                     0%
+  MIC.Infrastructure.Data.Migrations.PendingModelChanges                                           0%
+  MIC.Infrastructure.Data.Persistence.Configurations.AssetMonitorConfiguration                  89.1%
+  MIC.Infrastructure.Data.Persistence.Configurations.DecisionContextConfiguration               79.5%
+  MIC.Infrastructure.Data.Persistence.Configurations.EmailAccountConfiguration                    70%
+  MIC.Infrastructure.Data.Persistence.Configurations.EmailAttachmentConfiguration               68.2%
+  MIC.Infrastructure.Data.Persistence.Configurations.EmailMessageConfiguration                  69.2%
+  MIC.Infrastructure.Data.Persistence.Configurations.IntelligenceAlertConfiguration             73.6%
+  MIC.Infrastructure.Data.Persistence.Configurations.OperationalMetricConfiguration               75%
+  MIC.Infrastructure.Data.Persistence.Configurations.UserConfiguration                           100%
+  MIC.Infrastructure.Data.Persistence.Configurations.ValueComparerFactory                       27.1%
+  MIC.Infrastructure.Data.Persistence.DbInitializer                                                0%
+  MIC.Infrastructure.Data.Persistence.MicDbContext                                              89.2%
+  MIC.Infrastructure.Data.Persistence.MicDbContextFactory                                          0%
+  MIC.Infrastructure.Data.Persistence.UnitOfWork                                                   0%
+  MIC.Infrastructure.Data.Repositories.AlertRepository                                             0%
+  MIC.Infrastructure.Data.Repositories.ChatHistoryRepository                                       0%
+  MIC.Infrastructure.Data.Repositories.EmailAccountRepository                                      0%
+  MIC.Infrastructure.Data.Repositories.EmailRepository                                          68.5%
+  MIC.Infrastructure.Data.Repositories.MetricsRepository                                           0%
+  MIC.Infrastructure.Data.Repositories.Repository<T>                                            22.7%
+  MIC.Infrastructure.Data.Repositories.UserRepository                                           28.7%
+  MIC.Infrastructure.Data.Resilience.RetryPolicies                                               100%
+  MIC.Infrastructure.Data.Services.AttachmentStorageService                                        0%
+  MIC.Infrastructure.Data.Services.DatabaseMigrationService                                        0%
+  MIC.Infrastructure.Data.Services.EmailSenderService                                              0%
+  MIC.Infrastructure.Data.Services.KnowledgeBaseConfiguration                                    100%
+  MIC.Infrastructure.Data.Services.KnowledgeBaseService                                            0%
+  MIC.Infrastructure.Data.Services.MetricDataGenerator                                             0%
+  MIC.Infrastructure.Data.Services.NoOpSettingsCloudSyncService                                 26.6%
+  MIC.Infrastructure.Data.Services.RealEmailSyncService                                            0%
+  MIC.Infrastructure.Data.Services.SettingsService                                              64.3%
+
+MIC.Infrastructure.Identity                                                                     33.5%
+  MIC.Infrastructure.Identity.AuthenticationService                                             94.5%
+  MIC.Infrastructure.Identity.IdentityDependencyInjection                                       90.9%
+  MIC.Infrastructure.Identity.JwtTokenService                                                     87%
+  MIC.Infrastructure.Identity.Services.EmailOAuth2RouterService                                    0%
+  MIC.Infrastructure.Identity.Services.GmailOAuthService                                        12.6%
+  MIC.Infrastructure.Identity.Services.OutlookOAuthService                                        11%
+  MIC.Infrastructure.Identity.Services.PasswordHasher                                           84.8%
+  MIC.Infrastructure.Identity.TokenStorage.CredentialRecord                                      100%
+  MIC.Infrastructure.Identity.TokenStorage.WindowsCredentialManager                                0%
+  MIC.Infrastructure.Identity.TokenStorage.WindowsCredentialTokenStorageService                  100%
+  MIC.Infrastructure.Identity.TokenStorage.WindowsDpapiDataProtector                               0%
+
+MIC.Infrastructure.Monitoring                                                                      0%
+  MIC.Infrastructure.Monitoring.MonitoringService                                                  0%
+  MIC.Infrastructure.Monitoring.Telemetry                                                          0%

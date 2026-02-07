@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <RunAnalyzers>false</RunAnalyzers>
+    <!-- Suppress noisy warnings that are acceptable for this stage of development -->
+    <NoWarn>0618;8603;8618;0169</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ExcludeFromCodeCoverage Include="**/*.Avalonia.cs" />
+    <ExcludeFromCodeCoverage Include="**/*View.xaml.cs" />
+    <ExcludeFromCodeCoverage Include="**/MIC.Desktop.*" />
+  </ItemGroup>
+</Project>
