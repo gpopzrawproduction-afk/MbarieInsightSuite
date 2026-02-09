@@ -206,17 +206,12 @@ namespace MIC.Core.Intelligence
         /// <summary>
         /// Fetches emails from external provider.
         /// </summary>
-        private async Task<List<ExternalEmail>> FetchExternalEmailsAsync(
+        protected virtual Task<List<ExternalEmail>> FetchExternalEmailsAsync(
             EmailAccount emailAccount, 
             EmailFolder folder, 
             DateTime startDate, 
             CancellationToken cancellationToken)
         {
-            _ = emailAccount;
-            _ = folder;
-            _ = startDate;
-            _ = cancellationToken;
-
             throw new NotSupportedException("External email provider integration is not configured. Connect a real provider before syncing.");
         }
 

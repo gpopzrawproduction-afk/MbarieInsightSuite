@@ -230,6 +230,191 @@ public sealed class UserSessionServiceTests
         Assert.True(guestService.HasPermission(Permission.ViewAlerts));
     }
 
+    [Fact]
+    public void GetToken_WithoutSettingToken_ReturnsEmptyString()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+
+        Assert.Equal(string.Empty, service.GetToken());
+    }
+
+    [Fact]
+    public void SetToken_PersistsValueUntilCleared()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+
+        service.SetToken("session-token");
+        Assert.Equal("session-token", service.GetToken());
+
+        service.Clear();
+        Assert.Equal(string.Empty, service.GetToken());
+    }
+
+    [Fact]
+    public void GetUser_WhenNoSession_ReturnsEmptyDto()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+
+        var user = service.GetUser();
+
+        Assert.Equal(Guid.Empty, user.Id);
+        Assert.Equal(string.Empty, user.Username);
+        Assert.Equal(string.Empty, user.Email);
+    }
+
+    [Fact]
+    public void SetUser_WhenSessionAlreadyExists_UpdatesSessionProperties()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+        service.SetSession("1", "initial.user", "initial@example.com", "Initial User", null, "Initial", "Ops");
+
+        var updated = new UserDto
+        {
+            Id = Guid.NewGuid(),
+            Username = "updated.user",
+            Email = "updated@example.com",
+            FullName = "Updated User",
+            Role = DomainUserRole.User,
+            JobPosition = "Analyst",
+            Department = "Metrics",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            IsActive = true
+        };
+
+        service.SetUser(updated);
+
+        var session = service.CurrentSession;
+        Assert.NotNull(session);
+        Assert.Equal(updated.Id.ToString(), session!.UserId);
+        Assert.Equal("Updated User", session.DisplayName);
+        Assert.Equal("updated@example.com", session.Email);
+        Assert.Equal(DesktopUserRole.User, session.Role);
+        Assert.Equal("Analyst", session.Position);
+        Assert.Equal("Metrics", session.Department);
+    }
+
+    [Fact]
+    public void GetUser_WhenSessionContainsInvalidGuid_UsesEmptyGuid()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+        service.SetSession("not-a-guid", "someone", "test@example.com", "Test User", token: "token");
+
+        var user = service.GetUser();
+
+        Assert.Equal(Guid.Empty, user.Id);
+        Assert.Equal("someone", user.Username);
+    }
+
+    [Fact]
+    public async Task SetPreferenceAsync_WithNoActiveSession_DoesNothing()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+        service.Clear();
+
+        await service.SetPreferenceAsync("theme", "dark");
+
+        Assert.False(File.Exists(SessionFilePath));
+    }
+
+    [Fact]
+    public async Task GetPreference_WithJsonElementData_ReturnsTypedValue()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var initial = new UserSessionService();
+        initial.SetSession("7", "json.user", "json@example.com", "Json User", token: "token");
+
+        await initial.SetPreferenceAsync("threshold", 0.85);
+
+        var reloaded = new UserSessionService();
+        var value = reloaded.GetPreference("threshold", 0.1);
+
+        Assert.Equal(0.85, value);
+    }
+
+    [Fact]
+    public void GetPreference_WhenConversionFails_ReturnsDefault()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+        service.SetSession("15", "pref.user", "pref@example.com", "Pref User", token: "token");
+
+        service.CurrentSession!.Preferences!.Settings = new Dictionary<string, object>
+        {
+            ["refreshInterval"] = "invalid"
+        };
+
+        var result = service.GetPreference("refreshInterval", 5);
+
+        Assert.Equal(5, result);
+    }
+
+    [Fact]
+    public void UpdateActivity_WhenSessionExists_RefreshesTimestamp()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+        service.SetSession("99", "activity.user", "activity@example.com", "Activity User", token: "token");
+
+        var previous = DateTime.Now.AddMinutes(-10);
+        service.CurrentSession!.LastActivity = previous;
+
+        service.UpdateActivity();
+
+        Assert.True(service.CurrentSession!.LastActivity > previous);
+    }
+
+    [Fact]
+    public void CanPerform_WhenNotLoggedIn_ReturnsFalseWithoutUIInteraction()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+
+        var result = service.CanPerform(Permission.ViewDashboard, showError: false);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void CanPerform_WhenPermissionDenied_ReturnsFalse()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+        service.SetSession("guest", "guest", "guest@example.com", "Guest User", token: null);
+
+        var result = service.CanPerform(Permission.SystemSettings, showError: false);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void CanPerform_WhenPermissionGranted_ReturnsTrue()
+    {
+        using var scope = new SessionStorageScope(clearSession: true);
+        var service = new UserSessionService();
+        service.SetUser(new UserDto
+        {
+            Id = Guid.NewGuid(),
+            Username = "admin",
+            Email = "admin@example.com",
+            FullName = "Administrator",
+            Role = DomainUserRole.Admin,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            IsActive = true
+        });
+
+        var result = service.CanPerform(Permission.SystemSettings, showError: false);
+
+        Assert.True(result);
+    }
+
     private sealed class SessionStorageScope : IDisposable
     {
         private readonly string _sessionPath;

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -25,24 +26,69 @@ namespace MIC.Desktop.Avalonia
             {
                 if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                 {
-                    // Check for existing session (remember me functionality)
-                    var sessionService = Program.ServiceProvider?.GetRequiredService<UserSessionService>();
-                    MainWindowViewModel mainVm = Program.ServiceProvider!.GetRequiredService<MainWindowViewModel>();
-                    if (sessionService != null && sessionService.IsLoggedIn && !string.IsNullOrEmpty(sessionService.GetToken()))
+                    // Check if this is the first run
+                    var firstRunSetupService = Program.ServiceProvider?.GetRequiredService<IFirstRunSetupService>();
+                    
+                    if (firstRunSetupService != null && firstRunSetupService.IsFirstRunAsync().GetAwaiter().GetResult())
                     {
-                        // User is already logged in - go straight to main window
-                        var mainWindow = new MainWindow
+                        // Show first-run setup wizard
+                        var setupVm = new FirstRunSetupViewModel(firstRunSetupService, async () =>
                         {
-                            DataContext = mainVm
-                        };
-                        desktop.MainWindow = mainWindow;
+                            // After setup is complete, close the setup window and show login
+                            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+                            {
+                                var loginWindow = new LoginWindow();
+                                loginWindow.DataContext = Program.ServiceProvider!.GetRequiredService<LoginViewModel>();
+                                await Task.Delay(500); // Brief delay to allow setup window to close
+                                loginWindow.Show();
+                                
+                                var setupWindow = lifetime.Windows.FirstOrDefault(w => w is FirstRunSetupWindow);
+                                setupWindow?.Close();
+                            }
+                        });
+                        
+                        var setupWindow = new FirstRunSetupWindow(setupVm);
+                        setupWindow.Show();
                     }
                     else
                     {
-                        // Show login window
-                        var loginWindow = new LoginWindow();
-                        loginWindow.Show();
-                        desktop.MainWindow = loginWindow;
+                        // Check for existing session (remember me functionality)
+                        var sessionService = Program.ServiceProvider?.GetRequiredService<UserSessionService>();
+                        var mainVm = Program.ServiceProvider!.GetRequiredService<MainWindowViewModel>();
+                        if (sessionService != null && sessionService.IsLoggedIn && !string.IsNullOrEmpty(sessionService.GetToken()))
+                        {
+                            // User is already logged in - go straight to main window
+                            var mainWindow = new MainWindow
+                            {
+                                DataContext = mainVm
+                            };
+                            desktop.MainWindow = mainWindow;
+                        }
+                        else
+                        {
+                            // Show login window
+                            var loginWindow = new LoginWindow();
+                            loginWindow.DataContext = Program.ServiceProvider!.GetRequiredService<LoginViewModel>();
+                            loginWindow.Show();
+                            desktop.MainWindow = loginWindow;
+                        }
+
+                        // Subscribe to theme switching
+                        mainVm.ThemeRequested += (_, theme) =>
+                        {
+                            switch (theme)
+                            {
+                                case MainWindowViewModel.ThemeType.Light:
+                                    SwitchTheme("avares://MIC.Desktop.Avalonia/Themes/LightTheme.axaml");
+                                    break;
+                                case MainWindowViewModel.ThemeType.Dark:
+                                    SwitchTheme("avares://MIC.Desktop.Avalonia/Themes/DarkTheme.axaml");
+                                    break;
+                                case MainWindowViewModel.ThemeType.System:
+                                    SwitchTheme(null); // Use default
+                                    break;
+                            }
+                        };
                     }
 
                     // Prime notification bridge so domain events flow into the center
@@ -66,23 +112,6 @@ namespace MIC.Desktop.Avalonia
                             args.SetObserved();
                         };
                     }
-
-                    // Subscribe to theme switching
-                    mainVm.ThemeRequested += (_, theme) =>
-                    {
-                        switch (theme)
-                        {
-                            case MainWindowViewModel.ThemeType.Light:
-                                SwitchTheme("avares://MIC.Desktop.Avalonia/Themes/LightTheme.axaml");
-                                break;
-                            case MainWindowViewModel.ThemeType.Dark:
-                                SwitchTheme("avares://MIC.Desktop.Avalonia/Themes/DarkTheme.axaml");
-                                break;
-                            case MainWindowViewModel.ThemeType.System:
-                                SwitchTheme(null); // Use default
-                                break;
-                        }
-                    };
                 }
             }
             catch (Exception ex)

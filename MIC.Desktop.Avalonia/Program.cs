@@ -164,6 +164,9 @@ namespace MIC.Desktop.Avalonia
         services.AddHttpClient<UpdateService>();
         services.AddSingleton<UpdateService>();
 
+        // Register FirstRunSetupService
+        services.AddSingleton<IFirstRunSetupService, FirstRunSetupService>();
+
         // Notifications
         services.AddSingleton<INotificationService>(_ => NotificationService.Instance);
         services.AddSingleton(NotificationService.Instance);

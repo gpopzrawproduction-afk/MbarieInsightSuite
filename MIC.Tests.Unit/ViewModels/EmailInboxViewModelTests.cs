@@ -331,6 +331,268 @@ public sealed class EmailInboxViewModelTests : IDisposable
         _notificationService.DismissAll();
     }
 
+    [Fact]
+    public async Task SyncCommand_WhenServiceMissing_SetsStatusAndShowsError()
+    {
+        _notificationService.Reset();
+
+        var mediator = new StubMediator((_, _) => Task.FromResult<ErrorOr<IReadOnlyList<EmailDto>>>(new List<EmailDto>()));
+
+        SetProgramServiceProvider(BuildServiceProvider(mediator));
+
+        var viewModel = new EmailInboxViewModel(notificationService: _notificationService);
+
+        await viewModel.SyncCommand.Execute().ToTask();
+
+        viewModel.SyncStatus.Should().Be("Sync service not available");
+
+        SpinWait.SpinUntil(() => _notificationService.Notifications.Any(), TimeSpan.FromMilliseconds(200)).Should().BeTrue();
+        _notificationService.Notifications.Should().Contain(n => n.Message == "Email sync service is not available.");
+        var toast = _notificationService.Notifications.First(n => n.Message == "Email sync service is not available.");
+        toast.Type.Should().Be(ToastType.Error);
+        toast.Message.Should().Be("Email sync service is not available.");
+        toast.Category.Should().Be("Email Sync");
+    }
+
+    [Fact]
+    public async Task SyncCommand_WhenRepositoryMissing_SetsStatusAndShowsError()
+    {
+        _notificationService.Reset();
+
+        var mediator = new StubMediator((_, _) => Task.FromResult<ErrorOr<IReadOnlyList<EmailDto>>>(new List<EmailDto>()));
+        var emailSyncService = new Mock<IEmailSyncService>();
+
+        SetProgramServiceProvider(BuildServiceProvider(mediator, emailSyncService: emailSyncService.Object));
+
+        var viewModel = new EmailInboxViewModel(notificationService: _notificationService);
+
+        await viewModel.SyncCommand.Execute().ToTask();
+
+        viewModel.SyncStatus.Should().Be("Email account repository not available");
+        emailSyncService.Verify(
+            s => s.SyncAccountAsync(
+                It.IsAny<EmailAccount>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<bool?>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>()),
+            Times.Never);
+
+        SpinWait.SpinUntil(() => _notificationService.Notifications.Any(), TimeSpan.FromMilliseconds(200)).Should().BeTrue();
+        _notificationService.Notifications.Should().Contain(n => n.Message == "Email account repository is not available.");
+        var toast = _notificationService.Notifications.First(n => n.Message == "Email account repository is not available.");
+        toast.Type.Should().Be(ToastType.Error);
+        toast.Message.Should().Be("Email account repository is not available.");
+        toast.Category.Should().Be("Email Sync");
+    }
+
+    [Fact]
+    public async Task SyncCommand_WhenUserNotLoggedIn_ShowsErrorAndStops()
+    {
+        _notificationService.Reset();
+        UserSessionService.Instance.Clear();
+
+        var mediator = new StubMediator((_, _) => Task.FromResult<ErrorOr<IReadOnlyList<EmailDto>>>(new List<EmailDto>()));
+        var emailSyncService = new Mock<IEmailSyncService>();
+        var emailAccountRepository = new Mock<IEmailAccountRepository>();
+
+        SetProgramServiceProvider(BuildServiceProvider(
+            mediator,
+            emailAccountRepository: emailAccountRepository.Object,
+            emailSyncService: emailSyncService.Object));
+
+        var viewModel = new EmailInboxViewModel(notificationService: _notificationService);
+
+        await viewModel.SyncCommand.Execute().ToTask();
+
+        viewModel.SyncStatus.Should().Be("Sync failed");
+        emailAccountRepository.Verify(r => r.GetByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        emailSyncService.Verify(
+            s => s.SyncAccountAsync(
+                It.IsAny<EmailAccount>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<bool?>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>()),
+            Times.Never);
+
+        SpinWait.SpinUntil(() => _notificationService.Notifications.Any(), TimeSpan.FromMilliseconds(200)).Should().BeTrue();
+        _notificationService.Notifications.Should().Contain(n => n.Message == "User not logged in");
+        var toast = _notificationService.Notifications.First(n => n.Message == "User not logged in");
+        toast.Type.Should().Be(ToastType.Error);
+        toast.Message.Should().Be("User not logged in");
+        toast.Category.Should().Be("Email Sync");
+    }
+
+    [Fact]
+    public async Task SyncCommand_WhenNoAccounts_ShowsInfoAndDoesNotSync()
+    {
+        _notificationService.Reset();
+        var userId = Guid.NewGuid();
+        UserSessionService.Instance.SetSession(userId.ToString("D"), "user", "user@example.com", "User", token: "token");
+
+        var mediator = new StubMediator((_, _) => Task.FromResult<ErrorOr<IReadOnlyList<EmailDto>>>(new List<EmailDto>()));
+        var emailSyncService = new Mock<IEmailSyncService>();
+        var emailAccountRepository = new Mock<IEmailAccountRepository>();
+        emailAccountRepository
+            .Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<EmailAccount>());
+
+        SetProgramServiceProvider(BuildServiceProvider(
+            mediator,
+            emailAccountRepository: emailAccountRepository.Object,
+            emailSyncService: emailSyncService.Object));
+
+        var viewModel = new EmailInboxViewModel(notificationService: _notificationService);
+
+        await viewModel.SyncCommand.Execute().ToTask();
+
+        viewModel.SyncStatus.Should().Be("No email accounts connected");
+        emailSyncService.Verify(
+            s => s.SyncAccountAsync(
+                It.IsAny<EmailAccount>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<bool?>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>()),
+            Times.Never);
+
+        SpinWait.SpinUntil(() => _notificationService.Notifications.Any(), TimeSpan.FromMilliseconds(200)).Should().BeTrue();
+        _notificationService.Notifications.Should().Contain(n => n.Message == "No email accounts connected.");
+        var toast = _notificationService.Notifications.First(n => n.Message == "No email accounts connected.");
+        toast.Type.Should().Be(ToastType.Info);
+        toast.Message.Should().Be("No email accounts connected.");
+        toast.Category.Should().Be("Email Sync");
+    }
+
+    [Fact]
+    public async Task SyncCommand_WhenAccountSyncFails_ShowsErrorAndStops()
+    {
+        _notificationService.Reset();
+        var userId = Guid.NewGuid();
+        UserSessionService.Instance.SetSession(userId.ToString("D"), "user", "user@example.com", "User", token: "token");
+
+        var account = new EmailAccount("user@example.com", EmailProvider.Gmail, userId);
+
+        var mediator = new StubMediator((_, _) => Task.FromResult<ErrorOr<IReadOnlyList<EmailDto>>>(new List<EmailDto>()));
+        var emailSyncService = new Mock<IEmailSyncService>();
+        emailSyncService
+            .Setup(s => s.SyncAccountAsync(
+                It.IsAny<EmailAccount>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<bool?>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>()))
+            .ReturnsAsync(new EmailSyncResult { Success = false, ErrorMessage = "Sync failure" });
+
+        var emailAccountRepository = new Mock<IEmailAccountRepository>();
+        emailAccountRepository
+            .Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<EmailAccount> { account });
+
+        SetProgramServiceProvider(BuildServiceProvider(
+            mediator,
+            emailAccountRepository: emailAccountRepository.Object,
+            emailSyncService: emailSyncService.Object));
+
+        var viewModel = new EmailInboxViewModel(notificationService: _notificationService);
+
+        await viewModel.SyncCommand.Execute().ToTask();
+
+        viewModel.SyncStatus.Should().Be("Sync failed");
+        emailSyncService.Verify(
+            s => s.SyncAccountAsync(
+                It.Is<EmailAccount>(a => a.Id == account.Id),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<bool?>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>()),
+            Times.Once);
+
+        SpinWait.SpinUntil(() => _notificationService.Notifications.Any(), TimeSpan.FromMilliseconds(200)).Should().BeTrue();
+        _notificationService.Notifications.Should().Contain(n => n.Message == "Sync failure");
+        var toast = _notificationService.Notifications.First(n => n.Message == "Sync failure");
+        toast.Type.Should().Be(ToastType.Error);
+        toast.Message.Should().Be("Sync failure");
+        toast.Category.Should().Be("Email Sync");
+    }
+
+    [Fact]
+    public async Task SyncCommand_WhenAccountSyncSucceeds_RefreshesInboxAndNotifies()
+    {
+        _notificationService.Reset();
+        var userId = Guid.NewGuid();
+        UserSessionService.Instance.SetSession(userId.ToString("D"), "user", "user@example.com", "User", token: "token");
+
+        var account = new EmailAccount("user@example.com", EmailProvider.Gmail, userId);
+
+        var emailResults = new List<EmailDto>();
+        var mediator = new StubMediator((_, _) => Task.FromResult<ErrorOr<IReadOnlyList<EmailDto>>>(emailResults.ToList()));
+
+        var emailSyncService = new Mock<IEmailSyncService>();
+        emailSyncService
+            .Setup(s => s.SyncAccountAsync(
+                It.IsAny<EmailAccount>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<bool?>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>()))
+            .ReturnsAsync(new EmailSyncResult { Success = true, NewEmailsCount = 2 });
+
+        var emailAccountRepository = new Mock<IEmailAccountRepository>();
+        emailAccountRepository
+            .Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<EmailAccount> { account });
+
+        SetProgramServiceProvider(BuildServiceProvider(
+            mediator,
+            emailAccountRepository: emailAccountRepository.Object,
+            emailSyncService: emailSyncService.Object));
+
+        var viewModel = new EmailInboxViewModel(notificationService: _notificationService);
+
+        emailResults.Clear();
+        emailResults.Add(new EmailDto { Id = Guid.NewGuid(), Subject = "New 1", IsRead = false, Folder = EmailFolder.Inbox });
+        emailResults.Add(new EmailDto { Id = Guid.NewGuid(), Subject = "New 2", IsRead = true, Folder = EmailFolder.Inbox });
+
+        await viewModel.SyncCommand.Execute().ToTask();
+
+        viewModel.SyncStatus.Should().Be("Ready");
+        viewModel.TotalEmails.Should().Be(2);
+        viewModel.UnreadCount.Should().Be(1);
+        viewModel.RequiresResponseCount.Should().Be(0);
+
+        emailSyncService.Verify(
+            s => s.SyncAccountAsync(
+                It.Is<EmailAccount>(a => a.Id == account.Id),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<bool?>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>()),
+            Times.Once);
+
+        SpinWait.SpinUntil(() => _notificationService.Notifications.Any(), TimeSpan.FromMilliseconds(200)).Should().BeTrue();
+        _notificationService.Notifications.Should().Contain(n => n.Message == "Sync complete: 2 new emails");
+        var toast = _notificationService.Notifications.First(n => n.Message == "Sync complete: 2 new emails");
+        toast.Type.Should().Be(ToastType.Success);
+        toast.Message.Should().Be("Sync complete: 2 new emails");
+        toast.Category.Should().Be("Email Sync");
+    }
+
     public void Dispose()
     {
         SetProgramServiceProvider(_originalProvider);
@@ -338,13 +600,25 @@ public sealed class EmailInboxViewModelTests : IDisposable
         _sessionScope.Dispose();
     }
 
-    private IServiceProvider BuildServiceProvider(IMediator? mediator, IEmailRepository? emailRepository = null)
+    private IServiceProvider BuildServiceProvider(
+        IMediator? mediator,
+        IEmailRepository? emailRepository = null,
+        IEmailAccountRepository? emailAccountRepository = null,
+        IEmailSyncService? emailSyncService = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton<IErrorHandlingService>(_errorHandlingServiceMock.Object);
         if (emailRepository != null)
         {
             services.AddSingleton<IEmailRepository>(emailRepository);
+        }
+        if (emailAccountRepository != null)
+        {
+            services.AddSingleton<IEmailAccountRepository>(emailAccountRepository);
+        }
+        if (emailSyncService != null)
+        {
+            services.AddSingleton<IEmailSyncService>(emailSyncService);
         }
         if (mediator != null)
         {

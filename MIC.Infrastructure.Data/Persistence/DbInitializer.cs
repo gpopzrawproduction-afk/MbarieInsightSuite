@@ -362,25 +362,17 @@ public async Task InitializeAsync(CancellationToken cancellationToken = default)
 
 		_logger.LogInformation("Seeding demo email accounts and messages...");
 
-		// Use admin user if available; otherwise create a demo user
-		var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == "admin", cancellationToken);
+		// Only create demo emails if a user exists (meaning setup is complete)
+		// Don't create default users - first-run setup handles initial user creation
+	var user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
 		if (user == null)
 		{
-			var now = DateTimeOffset.UtcNow;
-			var (hash, salt) = _passwordHasher.HashPassword("Demo@123");
-			user = new User
-			{
-				Username = "demo",
-				Email = "demo@mbarieservicesltd.com",
-				FullName = "Demo User",
-				Role = UserRole.User,
-				PasswordHash = hash,
-				Salt = salt,
-				CreatedAt = now,
-				UpdatedAt = now
-			};
-			await _context.Users.AddAsync(user, cancellationToken);
-			await _context.SaveChangesAsync(cancellationToken);
+			_logger.LogInformation("No users exist yet. Skipping demo email seeding until first user is created.");
+			return;
+		}
+		else
+		{
+			_logger.LogInformation($"Found existing user {user.Username}. Proceeding with demo email seeding.");
 		}
 
 		// Minimal email account using updated constructor

@@ -1,0 +1,20 @@
+Coverage snapshot generated 2026-02-08 13:45 UTC (Notification, onboarding, compose focus)
+
+Source: dotnet test MIC.Tests.Unit/MIC.Tests.Unit.csproj --collect:"XPlat Code Coverage"
+Cobertura: MIC.Tests.Unit/TestResults/0e336813-fe84-4141-b703-ccc9aedd08e1/coverage.cobertura.xml
+
+Aggregate metrics:
+- Assemblies analyzed: 8
+- Line coverage: 22.21% (4,938 of 22,232 coverable lines)
+- Branch coverage: 19.67% (846 of 4,300 branches)
+
+Desktop highlights:
+- MIC.Desktop.Avalonia line coverage: 14.47%
+- MIC.Desktop.Avalonia branch coverage: 15.74%
+- NotificationCenterViewModel class remains fully covered (line 100%, branch 87.50%)
+- AddEmailAccountViewModel class remains fully covered (line 100%, branch 100%)
+- ComposeEmailViewModel class now 76.41% line / 22.72% branch coverage after reply/forward suites
+
+Next focus areas:
+- Expand coverage to EmailInbox and analytics dashboards
+- Capture combined coverage via ReportGenerator after next desktop batch

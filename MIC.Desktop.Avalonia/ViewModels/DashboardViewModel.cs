@@ -11,6 +11,7 @@ using MIC.Core.Application.Alerts.Queries.GetAllAlerts;
 using MIC.Core.Application.Metrics.Queries.GetMetrics;
 using MIC.Core.Application.Common.Interfaces;
 using Serilog;
+using MIC.Desktop.Avalonia.Services;
 
 namespace MIC.Desktop.Avalonia.ViewModels;
 
@@ -25,6 +26,7 @@ public class DashboardViewModel : ViewModelBase
     private readonly IEmailRepository _emailRepository;
     private readonly ILogger _logger;
     private readonly DispatcherTimer _refreshTimer;
+    private readonly IUiDispatcher _uiDispatcher;
     private int _activeAlerts;
     private int _totalMetrics;
     private int _predictions;
@@ -40,12 +42,18 @@ public class DashboardViewModel : ViewModelBase
     private int _refreshIntervalSeconds = 30;
     private string _refreshStatus = string.Empty;
 
-    public DashboardViewModel(IMediator mediator, INavigationService navigationService, ISessionService sessionService, IEmailRepository emailRepository)
+    public DashboardViewModel(
+        IMediator mediator,
+        INavigationService navigationService,
+        ISessionService sessionService,
+        IEmailRepository emailRepository,
+        IUiDispatcher? uiDispatcher = null)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
         _emailRepository = emailRepository ?? throw new ArgumentNullException(nameof(emailRepository));
+        _uiDispatcher = uiDispatcher ?? AvaloniaUiDispatcher.Instance;
         _logger = Log.ForContext<DashboardViewModel>();
         _lastUpdated = DateTime.Now.ToString("HH:mm:ss");
 
@@ -209,7 +217,7 @@ public class DashboardViewModel : ViewModelBase
     {
         try
         {
-            await Dispatcher.UIThread.InvokeAsync(() => 
+            await _uiDispatcher.RunAsync(() =>
             {
                 IsLoading = true;
                 RefreshStatus = "Loading...";
@@ -235,7 +243,7 @@ public class DashboardViewModel : ViewModelBase
                     SeverityBadgeBackground = GetSeverityBadgeBackground(alert.Severity.ToString())
                 }).ToList();
 
-                await Dispatcher.UIThread.InvokeAsync(() =>
+                await _uiDispatcher.RunAsync(() =>
                 {
                     ActiveAlerts = activeAlertsCount;
                     RecentAlerts.Clear();
@@ -251,13 +259,13 @@ public class DashboardViewModel : ViewModelBase
 
             if (!metricsResult.IsError && metricsResult.Value is { } metrics)
             {
-                await Dispatcher.UIThread.InvokeAsync(() => TotalMetrics = metrics.Count);
+                await _uiDispatcher.RunAsync(() => TotalMetrics = metrics.Count);
             }
 
             await LoadEmailDataAsync();
 
             // Predictions are not available until a real prediction service is configured
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            await _uiDispatcher.RunAsync(() =>
             {
                 Predictions = 0;
                 RecentPredictions.Clear();
@@ -265,7 +273,7 @@ public class DashboardViewModel : ViewModelBase
 
             await GenerateAIInsightsSummaryAsync();
 
-            await Dispatcher.UIThread.InvokeAsync(() => 
+            await _uiDispatcher.RunAsync(() =>
             {
                 LastUpdated = DateTime.Now.ToString("HH:mm:ss");
                 RefreshStatus = AutoRefreshEnabled ? $"Auto-refresh: ON ({_refreshIntervalSeconds}s)" : "Auto-refresh: OFF";
@@ -276,11 +284,11 @@ public class DashboardViewModel : ViewModelBase
         catch (Exception ex)
         {
             _logger.Error(ex, "❌ Dashboard load error");
-            await Dispatcher.UIThread.InvokeAsync(() => RefreshStatus = "Error refreshing");
+            await _uiDispatcher.RunAsync(() => RefreshStatus = "Error refreshing");
         }
         finally
         {
-            await Dispatcher.UIThread.InvokeAsync(() => IsLoading = false);
+            await _uiDispatcher.RunAsync(() => IsLoading = false);
         }
     }
 
@@ -289,7 +297,7 @@ public class DashboardViewModel : ViewModelBase
         var userId = _sessionService.GetUser().Id;
         if (userId == Guid.Empty)
         {
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            await _uiDispatcher.RunAsync(() =>
             {
                 TotalEmails = 0;
                 UnreadCount = 0;
@@ -310,7 +318,7 @@ public class DashboardViewModel : ViewModelBase
         var unreadCount = await _emailRepository.GetUnreadCountAsync(userId);
         var requiresResponseCount = await _emailRepository.GetRequiresResponseCountAsync(userId);
 
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        await _uiDispatcher.RunAsync(() =>
         {
             TotalEmails = recentEmails.Count;
             UnreadCount = unreadCount;
@@ -334,7 +342,7 @@ public class DashboardViewModel : ViewModelBase
 
     private async Task GenerateAIInsightsSummaryAsync()
     {
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        await _uiDispatcher.RunAsync(() =>
         {
             AIInsightsSummary = string.Empty;
         });

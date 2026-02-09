@@ -60,6 +60,8 @@ public class ZeroToBoolConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        // For two-way binding, if we can't reliably convert back, return DoNothing
+        // This converter is primarily meant for one-way binding scenarios
         return BindingOperations.DoNothing;
     }
 }
@@ -158,24 +160,37 @@ public class BoolToRefreshIconConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (targetType == typeof(bool) && value is string icon)
+        {
+            // Convert icon string back to boolean
+            return icon == "??"; // Pause icon means enabled
+        }
         return BindingOperations.DoNothing;
     }
 }
 
 public class BoolToRefreshColorConverter : IValueConverter
 {
+    private static readonly Color EnabledColor = Color.Parse("#10B981");
+    private static readonly Color DisabledColor = Color.Parse("#6B7280");
+
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is bool enabled)
         {
             // If auto-refresh is enabled, show green. If disabled, show gray.
-            return enabled ? Color.Parse("#10B981") : Color.Parse("#6B7280");
+            return enabled ? EnabledColor : DisabledColor;
         }
-        return Color.Parse("#6B7280");
+        return DisabledColor;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (targetType == typeof(bool) && value is Color color)
+        {
+            // Convert color back to boolean
+            return color == EnabledColor;
+        }
         return BindingOperations.DoNothing;
     }
 }
