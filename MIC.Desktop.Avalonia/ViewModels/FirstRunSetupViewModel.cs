@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Windows.Input;
 using ReactiveUI;
 using MIC.Desktop.Avalonia.Services;
+using MIC.Core.Application.Common.Interfaces;
 
 namespace MIC.Desktop.Avalonia.ViewModels;
 
@@ -13,7 +14,7 @@ public class FirstRunSetupViewModel : ViewModelBase
     private readonly IFirstRunSetupService _firstRunSetupService;
     private readonly Func<Task> _onSetupComplete;
 
-    public FirstRunSetupViewModel(IFirstRunSetupService firstRunSetupService, Func<Task> onSetupComplete)
+    public FirstRunSetupViewModel(MIC.Core.Application.Common.Interfaces.IFirstRunSetupService firstRunSetupService, Func<Task> onSetupComplete)
     {
         _firstRunSetupService = firstRunSetupService;
         _onSetupComplete = onSetupComplete;

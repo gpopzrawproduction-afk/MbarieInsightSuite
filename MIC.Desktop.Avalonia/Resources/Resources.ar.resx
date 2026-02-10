@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="AppTitle" xml:space="preserve">
+    <value>وحدة تحكم ذكاء مبارى</value>
+  </data>
+  <data name="MenuFile" xml:space="preserve">
+    <value>ملف</value>
+  </data>
+  <data name="MenuEdit" xml:space="preserve">
+    <value>تحرير</value>
+  </data>
+  <data name="MenuView" xml:space="preserve">
+    <value>عرض</value>
+  </data>
+  <data name="MenuHelp" xml:space="preserve">
+    <value>مساعدة</value>
+  </data>
+  <data name="MenuTheme" xml:space="preserve">
+    <value>سمة</value>
+  </data>
+  <data name="MenuShortcuts" xml:space="preserve">
+    <value>تخصيص الاختصارات</value>
+  </data>
+  <data name="MenuOnboarding" xml:space="preserve">
+    <value>جولة التعريف</value>
+  </data>
+  <data name="MenuSearchHelp" xml:space="preserve">
+    <value>بحث المساعدة</value>
+  </data>
+  <data name="DialogOnboardingTitle" xml:space="preserve">
+    <value>مرحبًا بك في وحدة تحكم ذكاء مبارى</value>
+  </data>
+  <data name="DialogOnboardingBody" xml:space="preserve">
+    <value>ستوجهك هذه الجولة عبر الميزات الرئيسية.</value>
+  </data>
+  <data name="DialogShortcutsTitle" xml:space="preserve">
+    <value>تخصيص اختصارات لوحة المفاتيح</value>
+  </data>
+  <data name="DialogShortcutsBody" xml:space="preserve">
+    <value>قم بتعيين المفاتيح المفضلة لديك للإجراءات الشائعة.</value>
+  </data>
+</root>

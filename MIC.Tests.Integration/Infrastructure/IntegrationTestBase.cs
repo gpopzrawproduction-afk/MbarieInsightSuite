@@ -82,7 +82,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         {
             ["ConnectionStrings:MicDatabase"] = connectionString,
             ["Database:Provider"] = "Postgres",
-            ["JwtSettings:Secret"] = "integration-testing-secret-key-ensure-32-length",
+            ["JwtSettings:SecretKey"] = "integration-testing-secret-key-ensure-32-length-minimum",
             ["JwtSettings:Issuer"] = "MIC.IntegrationTests",
             ["JwtSettings:Audience"] = "MIC.IntegrationTests",
             ["JwtSettings:ExpirationHours"] = "1"

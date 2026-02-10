@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Consola de Inteligencia Mbarie</value>
+  </data>
+  <data name="MenuFile" xml:space="preserve">
+    <value>Archivo</value>
+  </data>
+  <data name="MenuEdit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="MenuView" xml:space="preserve">
+    <value>Ver</value>
+  </data>
+  <data name="MenuHelp" xml:space="preserve">
+    <value>Ayuda</value>
+  </data>
+  <data name="MenuTheme" xml:space="preserve">
+    <value>Tema</value>
+  </data>
+  <data name="MenuShortcuts" xml:space="preserve">
+    <value>Personalizar Atajos</value>
+  </data>
+  <data name="MenuOnboarding" xml:space="preserve">
+    <value>Tour de Bienvenida</value>
+  </data>
+  <data name="MenuSearchHelp" xml:space="preserve">
+    <value>Buscar Ayuda</value>
+  </data>
+  <data name="DialogOnboardingTitle" xml:space="preserve">
+    <value>Bienvenido a la Consola de Inteligencia Mbarie</value>
+  </data>
+  <data name="DialogOnboardingBody" xml:space="preserve">
+    <value>Este tour le guiará a través de las principales características.</value>
+  </data>
+  <data name="DialogShortcutsTitle" xml:space="preserve">
+    <value>Personalizar Atajos de Teclado</value>
+  </data>
+  <data name="DialogShortcutsBody" xml:space="preserve">
+    <value>Asigne sus teclas preferidas a acciones comunes.</value>
+  </data>
+</root>

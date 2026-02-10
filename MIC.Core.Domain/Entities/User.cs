@@ -11,6 +11,16 @@ public enum UserRole
 	Guest = 2
 }
 
+// NEW: Supported languages for multilingual support
+public enum UserLanguage
+{
+	English = 0,
+	French = 1,
+	Spanish = 2,
+	Arabic = 3,
+	Chinese = 4
+}
+
 /// <summary>
 /// Represents an application user account.
 /// </summary>
@@ -47,4 +57,7 @@ public sealed class User : BaseEntity
 	
 	// Seniority level for organizational intelligence
 	public string? SeniorityLevel { get; set; }
+	
+	// Language preference for multilingual support
+	public UserLanguage Language { get; set; } = UserLanguage.English;
 }

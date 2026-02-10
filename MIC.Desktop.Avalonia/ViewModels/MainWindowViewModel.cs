@@ -13,6 +13,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using MIC.Core.Application.Common.Interfaces;
+using MIC.Core.Domain.Entities;
 using MIC.Desktop.Avalonia.Services;
 using MIC.Desktop.Avalonia.Views;
 using MIC.Desktop.Avalonia.Views.Dialogs;
@@ -31,6 +32,7 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
     private readonly ISessionService _sessionService;
     private readonly ILogger _logger;
     private readonly INotificationService _notificationService;
+    private readonly ILocalizationService _localizationService;
 
     private object? _currentView;
     private string _currentViewName = "Dashboard";
@@ -65,6 +67,7 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _localizationService = serviceProvider.GetRequiredService<ILocalizationService>();
 
         // Initialize command palette and notification infrastructure
         CommandPalette = serviceProvider.GetRequiredService<CommandPaletteViewModel>();
@@ -116,14 +119,26 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
             IsNotificationPanelOpen = false;
         }, canExecute);
 
-        // Language switching commands
+        // Language switching commands for all 5 supported languages
         SetLanguageEnglishCommand = ReactiveCommand.Create(() => {
             _logger.Information("Switching language to English");
-            SetLanguage("en");
+            SetLanguage(UserLanguage.English);
         }, canExecute);
         SetLanguageFrenchCommand = ReactiveCommand.Create(() => {
             _logger.Information("Switching language to French");
-            SetLanguage("fr");
+            SetLanguage(UserLanguage.French);
+        }, canExecute);
+        SetLanguageSpanishCommand = ReactiveCommand.Create(() => {
+            _logger.Information("Switching language to Spanish");
+            SetLanguage(UserLanguage.Spanish);
+        }, canExecute);
+        SetLanguageArabicCommand = ReactiveCommand.Create(() => {
+            _logger.Information("Switching language to Arabic");
+            SetLanguage(UserLanguage.Arabic);
+        }, canExecute);
+        SetLanguageChineseCommand = ReactiveCommand.Create(() => {
+            _logger.Information("Switching language to Chinese");
+            SetLanguage(UserLanguage.Chinese);
         }, canExecute);
 
         // Theme switching commands
@@ -402,18 +417,31 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
         }, canExecute);
     }
 
-    private void SetLanguage(string culture)
+    private void SetLanguage(UserLanguage language)
     {
         try
         {
-            System.Globalization.CultureInfo.CurrentUICulture = new System.Globalization.CultureInfo(culture);
-            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo(culture);
-            NotificationService.Instance.ShowInfo($"Language set to {culture}");
-            // TODO: Reload UI/resources for new language
+            _localizationService.SetCurrentCulture(language);
+            var culture = _localizationService.GetCurrentCulture();
+            NotificationService.Instance.ShowInfo($"Language set to {culture.DisplayName}");
+            
+            // Notify UI to refresh localized strings
+            OnPropertyChanged(nameof(MenuFile));
+            OnPropertyChanged(nameof(MenuEdit));
+            OnPropertyChanged(nameof(MenuView));
+            OnPropertyChanged(nameof(MenuHelp));
+            OnPropertyChanged(nameof(MenuTheme));
+            OnPropertyChanged(nameof(MenuShortcuts));
+            OnPropertyChanged(nameof(MenuOnboarding));
+            OnPropertyChanged(nameof(MenuSearchHelp));
+            OnPropertyChanged(nameof(AppTitle));
+            
+            _logger.Information("Language changed to {Language} ({Culture})", language, culture.Name);
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, $"Failed to set language: {culture}");
+            _logger.Error(ex, $"Failed to set language: {language}");
+            NotificationService.Instance.ShowError($"Failed to set language: {language}");
         }
     }
 
@@ -563,6 +591,9 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
     // Language switching commands
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> SetLanguageEnglishCommand { get; }
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> SetLanguageFrenchCommand { get; }
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> SetLanguageSpanishCommand { get; }
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> SetLanguageArabicCommand { get; }
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> SetLanguageChineseCommand { get; }
 
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> NavigateToDashboardCommand { get; }
     public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> NavigateToEmailCommand { get; }

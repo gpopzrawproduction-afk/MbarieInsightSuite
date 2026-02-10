@@ -8,16 +8,11 @@ using System.Threading.Tasks;
 
 namespace MIC.Desktop.Avalonia.Services;
 
-public interface IFirstRunSetupService
-{
-    Task<bool> IsFirstRunAsync();
-    Task CompleteFirstRunSetupAsync(string email, string password);
-    Task<bool> IsSetupCompleteAsync();
-}
 
-public class FirstRunSetupService : IFirstRunSetupService
+public class FirstRunSetupService : MIC.Core.Application.Common.Interfaces.IFirstRunSetupService
 {
     private readonly string _setupFilePath;
+    private readonly string _configFilePath;
 
     public FirstRunSetupService()
     {
@@ -25,6 +20,7 @@ public class FirstRunSetupService : IFirstRunSetupService
         var mbariePath = Path.Combine(appDataPath, "MBARIE");
         Directory.CreateDirectory(mbariePath); // Ensure directory exists
         _setupFilePath = Path.Combine(mbariePath, "setup.json");
+        _configFilePath = Path.Combine(mbariePath, "appsettings.runtime.json");
     }
 
     public async Task<bool> IsFirstRunAsync()
@@ -58,6 +54,22 @@ public class FirstRunSetupService : IFirstRunSetupService
         if (!IsPasswordStrong(password))
             throw new ArgumentException("Password does not meet security requirements");
 
+        // Generate a secure JWT secret key
+        var jwtSecretKey = GenerateSecureKey(64); // 64 bytes = 512 bits
+
+        // Create runtime configuration with the generated key
+        var runtimeConfig = new RuntimeConfig
+        {
+            JwtSettings = new JwtRuntimeSettings
+            {
+                SecretKey = jwtSecretKey
+            }
+        };
+
+        // Save runtime configuration
+        var configJson = JsonSerializer.Serialize(runtimeConfig, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(_configFilePath, configJson);
+
         // Mark setup as complete
         var setupData = new SetupData
         {
@@ -67,6 +79,14 @@ public class FirstRunSetupService : IFirstRunSetupService
 
         var setupJson = JsonSerializer.Serialize(setupData, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(_setupFilePath, setupJson);
+    }
+
+    private static string GenerateSecureKey(int length)
+    {
+        using var rng = RandomNumberGenerator.Create();
+        var bytes = new byte[length];
+        rng.GetBytes(bytes);
+        return Convert.ToBase64String(bytes);
     }
 
     private static bool IsValidEmail(string email)
@@ -95,9 +115,36 @@ public class FirstRunSetupService : IFirstRunSetupService
         return true;
     }
 
+    public string GetRuntimeJwtSecretKey()
+    {
+        if (!File.Exists(_configFilePath))
+            return null;
+
+        try
+        {
+            var content = File.ReadAllText(_configFilePath);
+            var runtimeConfig = JsonSerializer.Deserialize<RuntimeConfig>(content);
+            return runtimeConfig?.JwtSettings?.SecretKey;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private class SetupData
     {
         public bool SetupCompleted { get; set; }
         public DateTime SetupDate { get; set; }
+    }
+
+    private class RuntimeConfig
+    {
+        public JwtRuntimeSettings JwtSettings { get; set; }
+    }
+
+    private class JwtRuntimeSettings
+    {
+        public string SecretKey { get; set; }
     }
 }
