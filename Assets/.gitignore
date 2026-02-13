@@ -1,0 +1,24 @@
+# Assets folder .gitignore
+# This ensures large image files are managed appropriately
+
+# Generated/Temporary image files
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Keep the structure but allow specific formats
+!*.png
+!*.jpg
+!*.jpeg
+!*.gif
+!*.svg
+
+# Keep directory structure
+!*/
+
+# Large format files (optional compression)
+*.psd
+*.ai
+*.sketch
