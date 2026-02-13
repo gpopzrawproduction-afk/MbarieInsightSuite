@@ -1,6 +1,11 @@
 using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using MIC.Core.Application.Emails.Commands.SendEmail;
+using MIC.Core.Application.Emails.Commands.ReplyEmail;
+using MIC.Core.Application.Emails.Commands.DeleteEmail;
+using MIC.Core.Application.Common.Interfaces;
 
 namespace MIC.Core.Application;
 
