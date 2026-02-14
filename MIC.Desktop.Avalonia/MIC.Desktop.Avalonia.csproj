@@ -16,6 +16,10 @@
   <ItemGroup>
     <None Remove="Assets\**\*" />
     <AvaloniaResource Include="Assets\**" />
+    <!-- Include all image assets (Logo, Backgrounds, Icons, Images) -->
+    <Resource Include="..\..\Assets\**\*.*">
+      <Link>Assets/%(Filename)%(Extension)</Link>
+    </Resource>
   </ItemGroup>
 
 <ItemGroup>

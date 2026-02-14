@@ -29,17 +29,11 @@
                             Orientation="Horizontal"
                             Spacing="12"
                             VerticalAlignment="Center">
-                    <Border Width="36"
-                            Height="36"
-                            CornerRadius="8"
-                            Background="{StaticResource GoldenGradient}">
-                        <TextBlock Text="M"
-                                   FontSize="20"
-                                   FontWeight="Bold"
-                                   Foreground="#0A0A0F"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
+                    <Image Source="/Assets/Logo/mic_logo_128.png"
+                           Width="36"
+                           Height="36"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
                     <StackPanel Spacing="2"
                                 VerticalAlignment="Center">
                         <TextBlock Text="MBARIE"
