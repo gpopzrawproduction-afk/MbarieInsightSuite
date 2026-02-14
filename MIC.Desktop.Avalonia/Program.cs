@@ -193,15 +193,18 @@ namespace MIC.Desktop.Avalonia
         services.AddTransient<AlertDetailsViewModel>();
         services.AddTransient<MetricsDashboardViewModel>();
         services.AddTransient<PredictionsViewModel>();
+        services.AddTransient<ForecastingViewModel>();
+        services.AddTransient<ReportsViewModel>();
         services.AddTransient<ChatViewModel>();
         services.AddTransient<SettingsViewModel>();
         services.AddTransient<EmailInboxViewModel>();
+        services.AddTransient<NotificationsPanelViewModel>();
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<CreateAlertViewModel>();
         services.AddTransient<UserProfileViewModel>();
         services.AddTransient<CommandPaletteViewModel>();
-        services.AddTransient<AddEmailAccountViewModel>(); // Added for email account setup
-        services.AddTransient<UpdateViewModel>(); // Added for application updates
+        services.AddTransient<AddEmailAccountViewModel>();
+        services.AddTransient<UpdateViewModel>();
 
         // Add logging
         services.AddLogging(builder =>

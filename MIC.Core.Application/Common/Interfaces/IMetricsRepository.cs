@@ -37,4 +37,19 @@ public interface IMetricsRepository : IRepository<OperationalMetric>
     Task<IReadOnlyList<OperationalMetric>> GetByCategoryAsync(
         string category,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets metrics by name and date range for forecasting.
+    /// </summary>
+    Task<List<dynamic>> GetMetricsByNameAndDateRangeAsync(
+        string metricName,
+        DateTime from,
+        DateTime to,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all distinct metric names in the system.
+    /// </summary>
+    Task<List<string>> GetDistinctMetricNamesAsync(
+        CancellationToken cancellationToken = default);
 }

@@ -50,13 +50,7 @@ public sealed class AuthenticationService : IAuthenticationService
             };
         }
 
-
-        // LOGIN DEBUG: Log input and stored values before verification
-        _logger.LogInformation($"LOGIN DEBUG: Attempting login. Username: '{username}', InputPassword: '{password}', StoredHash: '{user.PasswordHash}', StoredSalt: '{user.Salt}'");
-
         var verified = _passwordHasher.VerifyPassword(password, user.PasswordHash, user.Salt);
-
-        _logger.LogInformation($"LOGIN DEBUG: Verification result for Username: '{username}': {verified}");
 
         if (!verified)
         {
@@ -134,18 +128,12 @@ public sealed class AuthenticationService : IAuthenticationService
         var anyUsers = await _userRepository.GetByUsernameAsync("admin").ConfigureAwait(false);
         bool isFirstUser = anyUsers == null;
 
-        var user = new User
-        {
-            Username = username.Trim(),
-            Email = email.Trim(),
-            PasswordHash = hash,
-            Salt = salt,
-            FullName = string.IsNullOrWhiteSpace(displayName) ? username.Trim() : displayName.Trim(),
-            IsActive = true,
-            CreatedAt = now,
-            UpdatedAt = now,
-            Role = isFirstUser ? UserRole.Admin : UserRole.User
-        };
+        var user = new User();
+        user.SetCredentials(username.Trim(), email.Trim());
+        user.SetPasswordHash(hash, salt);
+        user.UpdateProfile(fullName: string.IsNullOrWhiteSpace(displayName) ? username.Trim() : displayName.Trim());
+        user.SetRole(isFirstUser ? UserRole.Admin : UserRole.User);
+        user.RecordLogin(now);
 
         user = await _userRepository.CreateAsync(user).ConfigureAwait(false);
 

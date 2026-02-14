@@ -26,7 +26,7 @@ public sealed class ComposeEmailViewModelTestsCollectionDefinition
 {
 }
 
-[Collection("ComposeEmailViewModelTests")]
+[Collection("UserSessionServiceTests")]
 public sealed class ComposeEmailViewModelTests : IDisposable
 {
     private readonly FakeEmailAccountRepository _accountRepository = new();

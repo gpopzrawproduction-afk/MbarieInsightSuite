@@ -347,6 +347,305 @@ public sealed class DashboardViewModelTests
         viewModel.AutoRefreshEnabled = false;
     }
 
+    #region Constructor Guard Tests
+
+    [Fact]
+    public void Constructor_ThrowsOnNullMediator()
+    {
+        var act = () => new DashboardViewModel(
+            null!,
+            new Mock<INavigationService>().Object,
+            new Mock<ISessionService>().Object,
+            new Mock<IEmailRepository>().Object,
+            UiDispatcher);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("mediator");
+    }
+
+    [Fact]
+    public void Constructor_ThrowsOnNullNavigationService()
+    {
+        var act = () => new DashboardViewModel(
+            new Mock<IMediator>().Object,
+            null!,
+            new Mock<ISessionService>().Object,
+            new Mock<IEmailRepository>().Object,
+            UiDispatcher);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("navigationService");
+    }
+
+    [Fact]
+    public void Constructor_ThrowsOnNullSessionService()
+    {
+        var act = () => new DashboardViewModel(
+            new Mock<IMediator>().Object,
+            new Mock<INavigationService>().Object,
+            null!,
+            new Mock<IEmailRepository>().Object,
+            UiDispatcher);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("sessionService");
+    }
+
+    [Fact]
+    public void Constructor_ThrowsOnNullEmailRepository()
+    {
+        var act = () => new DashboardViewModel(
+            new Mock<IMediator>().Object,
+            new Mock<INavigationService>().Object,
+            new Mock<ISessionService>().Object,
+            null!,
+            UiDispatcher);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("emailRepository");
+    }
+
+    #endregion
+
+    #region Static Helper Method Tests
+
+    private static string InvokeGetRelativeTime(DateTime dateTime)
+    {
+        var method = typeof(DashboardViewModel).GetMethod("GetRelativeTime",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        return (string)method.Invoke(null, new object[] { dateTime })!;
+    }
+
+    private static string InvokeGetSeverityColor(string? severity)
+    {
+        var method = typeof(DashboardViewModel).GetMethod("GetSeverityColor",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        return (string)method.Invoke(null, new object?[] { severity })!;
+    }
+
+    private static string InvokeGetSeverityBadgeBackground(string? severity)
+    {
+        var method = typeof(DashboardViewModel).GetMethod("GetSeverityBadgeBackground",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        return (string)method.Invoke(null, new object?[] { severity })!;
+    }
+
+    [Fact]
+    public void GetRelativeTime_LessThanOneMinute_ReturnsJustNow()
+    {
+        InvokeGetRelativeTime(DateTime.UtcNow.AddSeconds(-10)).Should().Be("Just now");
+    }
+
+    [Fact]
+    public void GetRelativeTime_Minutes_ReturnsMinutesAgo()
+    {
+        InvokeGetRelativeTime(DateTime.UtcNow.AddMinutes(-15)).Should().EndWith("m ago");
+    }
+
+    [Fact]
+    public void GetRelativeTime_Hours_ReturnsHoursAgo()
+    {
+        InvokeGetRelativeTime(DateTime.UtcNow.AddHours(-5)).Should().EndWith("h ago");
+    }
+
+    [Fact]
+    public void GetRelativeTime_Days_ReturnsDaysAgo()
+    {
+        InvokeGetRelativeTime(DateTime.UtcNow.AddDays(-3)).Should().EndWith("d ago");
+    }
+
+    [Fact]
+    public void GetRelativeTime_MoreThanWeek_ReturnsFormattedDate()
+    {
+        var date = DateTime.UtcNow.AddDays(-10);
+        InvokeGetRelativeTime(date).Should().Contain(date.ToString("MMM"));
+    }
+
+    [Fact]
+    public void GetSeverityColor_Emergency_ReturnsRed()
+    {
+        InvokeGetSeverityColor("Emergency").Should().Be("#EF4444");
+    }
+
+    [Fact]
+    public void GetSeverityColor_Critical_ReturnsRed()
+    {
+        InvokeGetSeverityColor("Critical").Should().Be("#EF4444");
+    }
+
+    [Fact]
+    public void GetSeverityColor_Warning_ReturnsAmber()
+    {
+        InvokeGetSeverityColor("Warning").Should().Be("#F59E0B");
+    }
+
+    [Fact]
+    public void GetSeverityColor_Info_ReturnsBlue()
+    {
+        InvokeGetSeverityColor("Info").Should().Be("#3B82F6");
+    }
+
+    [Fact]
+    public void GetSeverityColor_Unknown_ReturnsGray()
+    {
+        InvokeGetSeverityColor("SomethingElse").Should().Be("#64748B");
+    }
+
+    [Fact]
+    public void GetSeverityColor_Null_ReturnsGray()
+    {
+        InvokeGetSeverityColor(null).Should().Be("#64748B");
+    }
+
+    [Fact]
+    public void GetSeverityBadgeBackground_Emergency_ReturnsSemiTransparentRed()
+    {
+        InvokeGetSeverityBadgeBackground("Emergency").Should().Be("#EF444420");
+    }
+
+    [Fact]
+    public void GetSeverityBadgeBackground_Warning_ReturnsSemiTransparentAmber()
+    {
+        InvokeGetSeverityBadgeBackground("Warning").Should().Be("#F59E0B20");
+    }
+
+    [Fact]
+    public void GetSeverityBadgeBackground_Info_ReturnsSemiTransparentBlue()
+    {
+        InvokeGetSeverityBadgeBackground("Info").Should().Be("#3B82F620");
+    }
+
+    [Fact]
+    public void GetSeverityBadgeBackground_Unknown_ReturnsSemiTransparentGray()
+    {
+        InvokeGetSeverityBadgeBackground("Other").Should().Be("#64748B20");
+    }
+
+    #endregion
+
+    #region Sub-ViewModel Tests
+
+    [Fact]
+    public void DashboardAlertViewModel_HasDefaultProperties()
+    {
+        var vm = new DashboardAlertViewModel();
+        vm.Title.Should().BeEmpty();
+        vm.Source.Should().BeEmpty();
+        vm.TimeAgo.Should().BeEmpty();
+        vm.SeverityText.Should().BeEmpty();
+        vm.SeverityColor.Should().Be("#64748B");
+        vm.SeverityBadgeBackground.Should().Be("#64748B20");
+    }
+
+    [Fact]
+    public void DashboardAlertViewModel_CanSetProperties()
+    {
+        var vm = new DashboardAlertViewModel
+        {
+            Title = "Alert",
+            Source = "System",
+            TimeAgo = "5m ago",
+            SeverityText = "Critical",
+            SeverityColor = "#EF4444",
+            SeverityBadgeBackground = "#EF444420"
+        };
+        vm.Title.Should().Be("Alert");
+        vm.Source.Should().Be("System");
+        vm.SeverityText.Should().Be("Critical");
+    }
+
+    [Fact]
+    public void DashboardPredictionViewModel_ConfidenceText_ReturnsPercentage()
+    {
+        var vm = new DashboardPredictionViewModel { Confidence = 85 };
+        vm.ConfidenceText.Should().Be("85%");
+    }
+
+    [Fact]
+    public void DashboardPredictionViewModel_HasDefaultProperties()
+    {
+        var vm = new DashboardPredictionViewModel();
+        vm.Title.Should().BeEmpty();
+        vm.Timestamp.Should().BeEmpty();
+        vm.Confidence.Should().Be(0);
+        vm.ConfidenceText.Should().Be("0%");
+        vm.TrendText.Should().BeEmpty();
+        vm.TrendColor.Should().Be("#64748B");
+    }
+
+    [Fact]
+    public void DashboardEmailViewModel_HasDefaultProperties()
+    {
+        var vm = new DashboardEmailViewModel();
+        vm.Subject.Should().BeEmpty();
+        vm.Sender.Should().BeEmpty();
+        vm.TimeAgo.Should().BeEmpty();
+        vm.PriorityIcon.Should().BeEmpty();
+        vm.PriorityColor.Should().Be("#64748B");
+    }
+
+    #endregion
+
+    #region Error Path Tests
+
+    [Fact]
+    public async Task RefreshCommand_WhenMediatorThrows_SetsErrorStatus()
+    {
+        var mediatorMock = new Mock<IMediator>();
+        mediatorMock
+            .Setup(m => m.Send(It.IsAny<GetAllAlertsQuery>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("DB error"));
+
+        var sessionServiceMock = new Mock<ISessionService>();
+        sessionServiceMock
+            .Setup(s => s.GetUser())
+            .Returns(new UserDto
+            {
+                Id = Guid.NewGuid(),
+                Username = "user",
+                Email = "user@example.com",
+                Role = DomainUserRole.User,
+                IsActive = true,
+                CreatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = DateTimeOffset.UtcNow
+            });
+
+        var viewModel = new DashboardViewModel(
+            mediatorMock.Object,
+            new Mock<INavigationService>().Object,
+            sessionServiceMock.Object,
+            new Mock<IEmailRepository>().Object,
+            UiDispatcher);
+
+        await viewModel.RefreshCommand.Execute().ToTask();
+
+        viewModel.RefreshStatus.Should().Contain("Error");
+        viewModel.IsLoading.Should().BeFalse();
+
+        viewModel.AutoRefreshEnabled = false;
+    }
+
+    [Fact]
+    public void AutoRefreshEnabled_DefaultTrue()
+    {
+        var mediatorMock = new Mock<IMediator>();
+        var sessionServiceMock = new Mock<ISessionService>();
+        sessionServiceMock.Setup(s => s.GetUser()).Returns(new UserDto
+        {
+            Id = Guid.Empty, Username = "", Email = "",
+            Role = DomainUserRole.Guest,
+            CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow
+        });
+
+        var viewModel = new DashboardViewModel(
+            mediatorMock.Object,
+            new Mock<INavigationService>().Object,
+            sessionServiceMock.Object,
+            new Mock<IEmailRepository>().Object,
+            UiDispatcher);
+
+        viewModel.AutoRefreshEnabled.Should().BeTrue();
+        viewModel.AutoRefreshEnabled = false;
+    }
+
+    #endregion
+
     private sealed class ImmediateUiDispatcher : IUiDispatcher
     {
         public Task RunAsync(Action action)

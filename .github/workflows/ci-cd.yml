@@ -30,9 +30,16 @@ jobs:
         run: dotnet restore
         working-directory: ./src/MIC
 
-      - name: Build solution
+      - name: Build solution (Debug)
+        run: dotnet build --no-restore --configuration Debug
+        working-directory: ./src/MIC
+        
+      - name: Build solution (Release - with security checks)
         run: dotnet build --no-restore --configuration Release
         working-directory: ./src/MIC
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Run unit tests
         run: |
@@ -189,11 +196,69 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Scan for hardcoded secrets
+        run: |
+          echo "?? Scanning for hardcoded credentials..."
+          # Scan for common patterns
+          if grep -r "Password123\|password123\|secret=\|apikey=" --include="*.cs" --include="*.csproj" --include="*.json" ./src/MIC; then
+            echo "::error::Found hardcoded credentials in source files!"
+            exit 1
+          fi
+          if grep -r "ConnectionString.*=.*;" --include="*.cs" ./src/MIC; then
+            echo "::warning::Review connection strings for hardcoded passwords"
+          fi
+          echo "? Hardcoded credentials scan passed"
+
+      - name: Verify certificate files excluded
+        run: |
+          if find ./src/MIC -name "*.pfx" -o -name "*.key" -o -name "*.p12"; then
+            echo "::error::Found certificate files that should be excluded!"
+            exit 1
+          fi
+          echo "? No untracked certificate files found"
+
+  package-windows:
+    name: Package for Windows (MSIX)
+    runs-on: windows-latest
+    needs: security-scan
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
       - name: Restore dependencies
         run: dotnet restore
         working-directory: ./src/MIC
 
-      - name: Run security audit
+      - name: Build for Release
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./src/MIC
+
+      - name: Create MSIX Package
+        run: |
+          echo "Building MSIX package..."
+          # Certificate password is provided via GitHub Secrets when needed
+          # For now, build without signing
+          dotnet publish -c Release -p:RuntimeIdentifier=win-x64 `
+            -p:PublishReadyToRun=true `
+            -p:PublishSelfContained=true
+        working-directory: ./src/MIC/MIC.Desktop.Avalonia
+        env:
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+
+      - name: Upload MSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mbarie-insight-suite-windows
+          path: ./src/MIC/MIC.Desktop.Avalonia/bin/Release/net9.0/win-x64/publish/
+
+      - name: Run security audit (check for vulnerable packages)
         run: dotnet list package --vulnerable --include-transitive
         working-directory: ./src/MIC
         continue-on-error: true
@@ -263,7 +328,7 @@ jobs:
           "*.dll" "*.dll"
           "*.json" "*.json"
           "*.config" "*.config"
-          @"
+          "@
           | Out-File -FilePath "mapping.txt" -Encoding UTF8
 
           # Package into MSIX
@@ -272,15 +337,12 @@ jobs:
 
       - name: Sign MSIX Package
         run: |
-          # Create self-signed certificate for testing (replace with real cert in production)
-          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=Mbarie Services Ltd" -KeyUsage DigitalSignature -KeyLength 2048 -CertStoreLocation "Cert:\CurrentUser\My"
-          $certPath = "cert.pfx"
-          $password = ConvertTo-SecureString -String "password123" -Force -AsPlainText
-          Export-PfxCertificate -Cert $cert -FilePath $certPath -Password $password
-
-          # Sign the package
-          signtool sign /fd SHA256 /a /f $certPath /p "password123" MIC.Desktop.Avalonia.msix
+          # SECURITY: Certificate password is provided via GitHub Secrets
+          # NEVER hardcode passwords in build files
+          signtool sign /fd SHA256 /a /f cert.pfx /p "${{ secrets.CERT_PASSWORD }}" MIC.Desktop.Avalonia.msix
         working-directory: ./src/MIC
+        env:
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
 
       - name: Upload MSIX Package
         uses: actions/upload-artifact@v4

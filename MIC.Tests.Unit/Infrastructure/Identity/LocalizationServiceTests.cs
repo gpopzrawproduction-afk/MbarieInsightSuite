@@ -179,7 +179,7 @@ public class LocalizationServiceTests
     public void CultureToUserLanguage_ShouldReturnEnglishForNull()
     {
         // Act & Assert
-        _service.CultureToUserLanguage(null).Should().Be(UserLanguage.English);
+        _service.CultureToUserLanguage(null!).Should().Be(UserLanguage.English);
     }
 
     [Fact]
@@ -229,4 +229,101 @@ public class LocalizationServiceTests
         // Assert
         formatted.Should().NotBeNullOrEmpty();
     }
+
+    #region Additional Coverage Tests
+
+    [Fact]
+    public void GetString_NullKey_ReturnsEmpty()
+    {
+        _service.GetString(null!).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void GetString_EmptyKey_ReturnsEmpty()
+    {
+        _service.GetString("").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void GetString_WhitespaceKey_ReturnsEmpty()
+    {
+        _service.GetString("   ").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void GetString_UnknownKey_ReturnsKey()
+    {
+        // ResourceManager returns null for unknown keys → falls back to the key itself
+        _service.GetString("some_unknown_key_xyz").Should().Be("some_unknown_key_xyz");
+    }
+
+    [Fact]
+    public void GetString_WithCultureInfo_ReturnsNonEmpty()
+    {
+        var culture = new System.Globalization.CultureInfo("fr-FR");
+        var result = _service.GetString("some_key", culture);
+        // Either returns localized value or falls back to the key
+        result.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public void GetSupportedCultures_ReturnsNonEmptyArray()
+    {
+        var cultures = _service.GetSupportedCultures();
+        cultures.Should().NotBeEmpty();
+        cultures.Should().HaveCountGreaterOrEqualTo(5);
+    }
+
+    [Fact]
+    public void GetSupportedUserLanguages_ContainsAllFiveLanguages()
+    {
+        var languages = _service.GetSupportedUserLanguages();
+        languages.Should().Contain(UserLanguage.English);
+        languages.Should().Contain(UserLanguage.French);
+        languages.Should().Contain(UserLanguage.Spanish);
+        languages.Should().Contain(UserLanguage.Arabic);
+        languages.Should().Contain(UserLanguage.Chinese);
+    }
+
+    [Fact]
+    public void FormatDate_WithSpecificCulture_ReturnsFormattedString()
+    {
+        var date = new DateTime(2024, 6, 15);
+        var culture = new System.Globalization.CultureInfo("fr-FR");
+        var result = _service.FormatDate(date, culture);
+        result.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public void FormatNumber_WithSpecificCulture_ReturnsFormattedString()
+    {
+        var culture = new System.Globalization.CultureInfo("de-DE");
+        var result = _service.FormatNumber(1234.56, culture);
+        result.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public void IsRtlCulture_NullCulture_ReturnsFalse()
+    {
+        _service.IsRtlCulture(null!).Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetLanguageDisplayName_ReturnsNonEmptyForAllLanguages()
+    {
+        foreach (var lang in _service.GetSupportedUserLanguages())
+        {
+            _service.GetLanguageDisplayName(lang).Should().NotBeNullOrEmpty();
+        }
+    }
+
+    [Fact]
+    public void SetCurrentCulture_CultureInfo_SetsThreadCulture()
+    {
+        var frCulture = new System.Globalization.CultureInfo("fr-FR");
+        _service.SetCurrentCulture(frCulture);
+        _service.GetCurrentCulture().Name.Should().Be("fr-FR");
+    }
+
+    #endregion
 }

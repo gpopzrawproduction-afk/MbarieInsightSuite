@@ -80,29 +80,27 @@ stderr_run.txt
 
 # Copilot snapshots
 **/.vs/CopilotSnapshots/
-*.pfx
-artifacts/micdev.pfx
 
-# Security - Never commit private keys
-*.pfx
-artifacts/*.pfx
-
-
-# Security - Never commit private keys
-*.pfx
-artifacts/*.pfx
-
-
-# Security - Never commit private keys or certs
+# Security - CRITICAL: Never commit private keys, certificates, or signing materials
+# Certificate and key files
 *.pfx
 *.p12
 *.key
+*.pem
+*.cer
+*.crt
 artifacts/*.pfx
 artifacts/*.p12
-artifacts/micdev.pfx
-# Sensitive configuration
-appsettings.*.json
-!appsettings.json
+artifacts/*.key
+
+# Sensitive configuration files (keep template only)
+# NOTE: appsettings.Production.json has no secrets (empty values)
+# but should not be deployed with hardcoded values
+
+# GitHub Actions and CI/CD secrets
+.github/secrets/
+.github/*.key
+.github/*.pfx
 !appsettings.Development.json
 secrets.json
 

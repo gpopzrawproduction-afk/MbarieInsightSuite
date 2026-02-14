@@ -1,0 +1,309 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+xmlns:vm="clr-namespace:MIC.Desktop.Avalonia.ViewModels"
+x:DataType="vm:ForecastingViewModel"
+x:Class="MIC.Desktop.Avalonia.Views.PredictionView">
+
+    <!-- Dark glassmorphic background -->
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Background="#0A0E27" OpacityMask="LinearGradientBrush">
+        <!-- HEADER ROW -->
+        <Grid Row="0" Margin="24,24,24,0" ColumnDefinitions="*,Auto,Auto">
+            <!-- Title -->
+            <StackPanel Orientation="Vertical" Spacing="4">
+                <TextBlock 
+                    Text="PREDICTIVE INTELLIGENCE"
+                    Foreground="#BF40FF"
+                    FontSize="32"
+                    FontWeight="Bold"
+                    FontFamily="Rajdhani, monospace"
+                    Opacity="0"
+                    CornerRadius="0">
+                    <TextBlock.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.35" />
+                        </Transitions>
+                    </TextBlock.Transitions>
+                </TextBlock>
+                <TextBlock 
+                    Text="AI-POWERED METRIC FORECASTING"
+                    Foreground="#666E8F"
+                    FontSize="12"
+                    FontFamily="Rajdhani, monospace"
+                    LetterSpacing="2"
+                    Opacity="0"
+                    CornerRadius="0">
+                    <TextBlock.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.35" Delay="0:0:0.05" />
+                        </Transitions>
+                    </TextBlock.Transitions>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- Right Side: Buttons -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
+                <!-- Refresh Button -->
+                <Button 
+                    Command="{Binding RefreshCommand}"
+                    IsEnabled="{Binding !IsLoading}"
+                    Classes="GlassmorphicButton"
+                    ToolTip.Tip="Refresh forecast">
+                    <TextBlock Text="??" FontSize="16" />
+                </Button>
+
+                <!-- Export Button -->
+                <Button 
+                    Command="{Binding ExportCommand}"
+                    IsEnabled="{Binding HasData}"
+                    Classes="GlassmorphicButton"
+                    ToolTip.Tip="Export to CSV">
+                    <TextBlock Text="??" FontSize="16" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- CONTROL BAR -->
+        <Border Row="1" Margin="24,20,24,0" Padding="20" Background="#0F1433" BorderBrush="#1A1F4A" BorderThickness="1" CornerRadius="12" Opacity="0">
+            <StackPanel Orientation="Vertical" Spacing="16">
+                <!-- Row 1: Metric Selection -->
+                <Grid ColumnDefinitions="200,*">
+                    <StackPanel Orientation="Vertical" Spacing="6">
+                        <TextBlock Text="SELECT METRIC" Foreground="#666E8F" FontSize="10" FontFamily="Rajdhani, monospace" LetterSpacing="1" />
+                        <ComboBox 
+                            ItemsSource="{Binding AvailableMetrics}"
+                            SelectedItem="{Binding SelectedMetric}"
+                            Classes="GlassmorphicComboBox"
+                            MinWidth="180"
+                            Height="38" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Row 2: Data Range Selection -->
+                <StackPanel Orientation="Vertical" Spacing="6">
+                    <TextBlock Text="DATA RANGE" Foreground="#666E8F" FontSize="10" FontFamily="Rajdhani, monospace" LetterSpacing="1" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ToggleButton 
+                            Command="{Binding SetHistoryRangeCommand}"
+                            CommandParameter="{x:Static vm:PredictionViewModel+HistoryRange.Hours24}"
+                            IsChecked="{Binding SelectedHistoryRange, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Hours24}"
+                            Content="24H" Classes="GlassmorphicToggle" />
+                        <ToggleButton 
+                            Command="{Binding SetHistoryRangeCommand}"
+                            CommandParameter="{x:Static vm:PredictionViewModel+HistoryRange.Days7}"
+                            IsChecked="{Binding SelectedHistoryRange, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Days7}"
+                            Content="7D" Classes="GlassmorphicToggle" />
+                        <ToggleButton 
+                            Command="{Binding SetHistoryRangeCommand}"
+                            CommandParameter="{x:Static vm:PredictionViewModel+HistoryRange.Days30}"
+                            IsChecked="{Binding SelectedHistoryRange, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Days30}"
+                            Content="30D" Classes="GlassmorphicToggle" />
+                        <ToggleButton 
+                            Command="{Binding SetHistoryRangeCommand}"
+                            CommandParameter="{x:Static vm:PredictionViewModel+HistoryRange.Days90}"
+                            IsChecked="{Binding SelectedHistoryRange, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Days90}"
+                            Content="90D" Classes="GlassmorphicToggle" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Row 3: Forecast Period Selection -->
+                <StackPanel Orientation="Vertical" Spacing="6">
+                    <TextBlock Text="FORECAST PERIOD" Foreground="#666E8F" FontSize="10" FontFamily="Rajdhani, monospace" LetterSpacing="1" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ToggleButton 
+                            Command="{Binding SetForecastPeriodCommand}"
+                            CommandParameter="{x:Static vm:PredictionViewModel+ForecastPeriod.Days7}"
+                            IsChecked="{Binding SelectedForecastPeriod, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Days7}"
+                            Content="7 Days" Classes="GlassmorphicToggle" />
+                        <ToggleButton 
+                            Command="{Binding SetForecastPeriodCommand}"
+                            CommandParameter="{x:Static vm:PredictionViewModel+ForecastPeriod.Days14}"
+                            IsChecked="{Binding SelectedForecastPeriod, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Days14}"
+                            Content="14 Days" Classes="GlassmorphicToggle" />
+                        <ToggleButton 
+                            Command="{Binding SetForecastPeriodCommand}"
+                            CommandParameter="{x:Static vm:PredictionViewModel+ForecastPeriod.Days30}"
+                            IsChecked="{Binding SelectedForecastPeriod, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Days30}"
+                            Content="30 Days" Classes="GlassmorphicToggle" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Row 4: Generate Button -->
+                <Button 
+                    Command="{Binding GenerateForecastCommand}"
+                    IsEnabled="{Binding !IsLoading}"
+                    Content="GENERATE FORECAST ?"
+                    Classes="GlassmorphicButton,PrimaryButton"
+                    Height="40"
+                    FontSize="14"
+                    FontWeight="Bold" />
+            </StackPanel>
+
+            <Border.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.35" Delay="0:0:0.1" />
+                </Transitions>
+            </Border.Transitions>
+        </Border>
+
+        <!-- MAIN CONTENT AREA -->
+        <Grid Row="2" ColumnDefinitions="*,320" Margin="24,24,24,24" RowDefinitions="*" >
+
+            <!-- LEFT: CHART PANEL -->
+            <Border 
+                Padding="24" 
+                Background="#0F1433" 
+                BorderBrush="#1A1F4A" 
+                BorderThickness="1" 
+                CornerRadius="12" 
+                Opacity="0">
+
+                <Grid RowDefinitions="Auto,*">
+                    <!-- Chart Title -->
+                    <TextBlock 
+                        Text="HISTORICAL &amp; FORECAST DATA" 
+                        Foreground="#BF40FF" 
+                        FontSize="14" 
+                        FontWeight="Bold" 
+                        FontFamily="Rajdhani, monospace" 
+                        Margin="0,0,0,16" />
+
+                    <!-- Loading State -->
+                    <StackPanel Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16" IsVisible="{Binding IsLoading}">
+                        <TextBlock Text="RUNNING PREDICTIVE MODELS..." Foreground="#666E8F" FontSize="14" HorizontalAlignment="Center" />
+                        <ProgressBar IsIndeterminate="True" Height="3" Foreground="#BF40FF" />
+                    </StackPanel>
+
+                    <!-- Error State -->
+                    <StackPanel Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" IsVisible="{Binding HasError}">
+                        <TextBlock Text="?? ERROR" Foreground="#FF0055" FontSize="16" HorizontalAlignment="Center" FontWeight="Bold" />
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="#FF6B8F" FontSize="12" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="300" />
+                        <Button 
+                            Command="{Binding RefreshCommand}" 
+                            Content="Retry" 
+                            Classes="GlassmorphicButton" 
+                            Width="100" 
+                            HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Chart Placeholder (LiveCharts would go here in production) -->
+                    <Canvas Row="1" Background="#0A0E27" IsVisible="{Binding HasData}" Margin="12">
+                        <TextBlock Text="?? Chart visualization powered by LiveCharts" Foreground="#666E8F" FontSize="12" Canvas.Left="20" Canvas.Top="20" />
+                    </Canvas>
+
+                    <!-- Empty State -->
+                    <StackPanel Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" IsVisible="{Binding !HasData, !IsLoading, !HasError}">
+                        <TextBlock Text="SELECT METRIC AND GENERATE FORECAST TO VIEW CHART" Foreground="#666E8F" FontSize="12" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.4" Delay="0:0:0.2" />
+                    </Transitions>
+                </Border.Transitions>
+            </Border>
+
+            <!-- RIGHT: INSIGHTS CARDS PANEL -->
+            <StackPanel Grid.Column="1" Spacing="16" Margin="16,0,0,0">
+
+                <!-- CARD 1: TREND DIRECTION -->
+                <Border Padding="20" Background="#0F1433" BorderBrush="#1A1F4A" BorderThickness="1" CornerRadius="12" Opacity="0">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="{Binding TrendIcon, StringFormat='{0}'}" FontSize="36" Foreground="{Binding TrendColor}" HorizontalAlignment="Center" />
+                        <TextBlock Text="TREND" Foreground="#666E8F" FontSize="10" FontFamily="Rajdhani, monospace" LetterSpacing="1" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding TrendLabel}" Foreground="{Binding TrendColor}" FontSize="18" FontWeight="Bold" FontFamily="Rajdhani, monospace" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding TrendPercentage, StringFormat='{0:F1}% per period'}" Foreground="#999AAA" FontSize="11" HorizontalAlignment="Center" />
+                    </StackPanel>
+                    <Border.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.4" Delay="0:0:0.3" />
+                        </Transitions>
+                    </Border.Transitions>
+                </Border>
+
+                <!-- CARD 2: FORECAST VALUE -->
+                <Border Padding="20" Background="#0F1433" BorderBrush="#1A1F4A" BorderThickness="1" CornerRadius="12" Opacity="0">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="??" FontSize="36" HorizontalAlignment="Center" />
+                        <TextBlock Text="NEXT PERIOD" Foreground="#666E8F" FontSize="10" FontFamily="Rajdhani, monospace" LetterSpacing="1" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding ForecastedNextValueFormatted}" Foreground="#BF40FF" FontSize="28" FontWeight="Bold" FontFamily="Rajdhani, monospace" HorizontalAlignment="Center" />
+                        <TextBlock Text="±1.5? confidence interval" Foreground="#999AAA" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                    <Border.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.4" Delay="0:0:0.35" />
+                        </Transitions>
+                    </Border.Transitions>
+                </Border>
+
+                <!-- CARD 3: CONFIDENCE SCORE -->
+                <Border Padding="20" Background="#0F1433" BorderBrush="#1A1F4A" BorderThickness="1" CornerRadius="12" Opacity="0">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="CONFIDENCE" Foreground="#666E8F" FontSize="10" FontFamily="Rajdhani, monospace" LetterSpacing="1" HorizontalAlignment="Center" />
+                        <Grid Width="100" Height="100" HorizontalAlignment="Center">
+                            <Ellipse Fill="None" Stroke="#1A1F4A" StrokeThickness="2" />
+                            <Ellipse 
+                                Fill="None" 
+                                Stroke="#BF40FF" 
+                                StrokeThickness="3"
+                                StrokeDashArray="251,251"
+                                RenderTransformOrigin="0.5,0.5">
+                                <!-- Arc shows confidence visually -->
+                            </Ellipse>
+                            <TextBlock 
+                                Text="{Binding ConfidencePercent, StringFormat='{0}%'}" 
+                                Foreground="#BF40FF" 
+                                FontSize="20" 
+                                FontWeight="Bold" 
+                                HorizontalAlignment="Center" 
+                                VerticalAlignment="Center" />
+                        </Grid>
+                        <TextBlock Text="Based on 7+ data points" Foreground="#999AAA" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                    <Border.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.4" Delay="0:0:0.4" />
+                        </Transitions>
+                    </Border.Transitions>
+                </Border>
+
+                <!-- CARD 4: ANOMALY RISK -->
+                <Border Padding="20" Background="#0F1433" BorderBrush="#1A1F4A" BorderThickness="1" CornerRadius="12" Opacity="0">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="??" FontSize="36" HorizontalAlignment="Center" />
+                        <TextBlock Text="ANOMALY RISK" Foreground="#666E8F" FontSize="10" FontFamily="Rajdhani, monospace" LetterSpacing="1" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding AnomalyRiskLabel}" Foreground="{Binding AnomalyRiskColor}" FontSize="18" FontWeight="Bold" FontFamily="Rajdhani, monospace" HorizontalAlignment="Center" />
+                        <TextBlock Text="z-score: ±2? bounds" Foreground="#999AAA" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                    <Border.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.4" Delay="0:0:0.45" />
+                        </Transitions>
+                    </Border.Transitions>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- FORECAST TABLE ROW -->
+        <Expander Row="3" Margin="24,0,24,24" Header="FORECAST DATA TABLE ?" IsExpanded="True">
+            <DataGrid 
+                ItemsSource="{Binding ForecastTableRows}"
+                AutoGenerateColumns="False"
+                CanUserResizeColumns="True"
+                CanUserReorderColumns="False"
+                IsReadOnly="True"
+                Background="#0F1433"
+                BorderBrush="#1A1F4A"
+                BorderThickness="1">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{0:yyyy-MM-dd}'}" Width="100" />
+                    <DataGridTextColumn Header="Predicted Value" Binding="{Binding PredictedValue, StringFormat='{0:F2}'}" Width="120" />
+                    <DataGridTextColumn Header="Lower Bound" Binding="{Binding LowerBound, StringFormat='{0:F2}'}" Width="110" />
+                    <DataGridTextColumn Header="Upper Bound" Binding="{Binding UpperBound, StringFormat='{0:F2}'}" Width="110" />
+                    <DataGridTextColumn Header="Change %" Binding="{Binding ChangePercent, StringFormat='{0:F2}%'}" Width="90" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Expander>
+    </Grid>
+</UserControl>

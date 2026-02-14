@@ -395,4 +395,226 @@ public class ExportServiceTests : IDisposable
     }
 
     #endregion
+
+    #region HTML Report Tests
+
+    [Fact]
+    public async Task GenerateHtmlReportAsync_WithEmptyData_CreatesValidHtml()
+    {
+        var alerts = new List<AlertDto>();
+        var metrics = new List<MetricDto>();
+        var filename = $"test_report_{Guid.NewGuid()}.html";
+
+        var filepath = await _sut.GenerateHtmlReportAsync(alerts, metrics, filename);
+        _createdFiles.Add(filepath);
+
+        File.Exists(filepath).Should().BeTrue();
+        var content = await File.ReadAllTextAsync(filepath);
+        content.Should().Contain("<!DOCTYPE html>");
+        content.Should().Contain("MIC Report");
+        content.Should().Contain("TOTAL ALERTS");
+        content.Should().Contain("METRICS");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlReportAsync_CountsAlertsCorrectly()
+    {
+        var alerts = new List<AlertDto>
+        {
+            new AlertDto { Id = Guid.NewGuid(), AlertName = "A1", Severity = AlertSeverity.Critical, Status = AlertStatus.Active, Source = "S1" },
+            new AlertDto { Id = Guid.NewGuid(), AlertName = "A2", Severity = AlertSeverity.Warning, Status = AlertStatus.Active, Source = "S2" },
+            new AlertDto { Id = Guid.NewGuid(), AlertName = "A3", Severity = AlertSeverity.Critical, Status = AlertStatus.Resolved, Source = "S3" }
+        };
+        var metrics = new List<MetricDto>();
+        var filename = $"test_counts_{Guid.NewGuid()}.html";
+
+        var filepath = await _sut.GenerateHtmlReportAsync(alerts, metrics, filename);
+        _createdFiles.Add(filepath);
+
+        var content = await File.ReadAllTextAsync(filepath);
+        // Total alerts = 3
+        content.Should().Contain(">3<");
+        // Critical count = 2
+        content.Should().Contain(">2<");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlReportAsync_IncludesAlertDataInTable()
+    {
+        var alerts = new List<AlertDto>
+        {
+            new AlertDto { Id = Guid.NewGuid(), AlertName = "Security Breach", Severity = AlertSeverity.Critical, Status = AlertStatus.Active, Source = "Firewall", TriggeredAt = DateTime.Now }
+        };
+        var metrics = new List<MetricDto>();
+        var filename = $"test_alert_table_{Guid.NewGuid()}.html";
+
+        var filepath = await _sut.GenerateHtmlReportAsync(alerts, metrics, filename);
+        _createdFiles.Add(filepath);
+
+        var content = await File.ReadAllTextAsync(filepath);
+        content.Should().Contain("Security Breach");
+        content.Should().Contain("Firewall");
+        content.Should().Contain("Critical");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlReportAsync_IncludesMetricDataInTable()
+    {
+        var alerts = new List<AlertDto>();
+        var metrics = new List<MetricDto>
+        {
+            new MetricDto { Id = Guid.NewGuid(), MetricName = "CPU Load", Category = "Performance", Value = 87.5, Unit = "percent", Timestamp = DateTime.Now }
+        };
+        var filename = $"test_metric_table_{Guid.NewGuid()}.html";
+
+        var filepath = await _sut.GenerateHtmlReportAsync(alerts, metrics, filename);
+        _createdFiles.Add(filepath);
+
+        var content = await File.ReadAllTextAsync(filepath);
+        content.Should().Contain("CPU Load");
+        content.Should().Contain("Performance");
+        content.Should().Contain("87.50");
+        content.Should().Contain("percent");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlReportAsync_HtmlEncodesSpecialCharacters()
+    {
+        var alerts = new List<AlertDto>
+        {
+            new AlertDto { Id = Guid.NewGuid(), AlertName = "Test <script>alert('xss')</script>", Severity = AlertSeverity.Info, Status = AlertStatus.Active, Source = "Source&Special", TriggeredAt = DateTime.Now }
+        };
+        var metrics = new List<MetricDto>();
+        var filename = $"test_encoding_{Guid.NewGuid()}.html";
+
+        var filepath = await _sut.GenerateHtmlReportAsync(alerts, metrics, filename);
+        _createdFiles.Add(filepath);
+
+        var content = await File.ReadAllTextAsync(filepath);
+        content.Should().Contain("&lt;script&gt;");
+        content.Should().Contain("Source&amp;Special");
+        content.Should().NotContain("<script>alert");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlReportAsync_DefaultFilename_GeneratesTimestamped()
+    {
+        var alerts = new List<AlertDto>();
+        var metrics = new List<MetricDto>();
+
+        var filepath = await _sut.GenerateHtmlReportAsync(alerts, metrics);
+        _createdFiles.Add(filepath);
+
+        var filename = Path.GetFileName(filepath);
+        filename.Should().StartWith("report_");
+        filename.Should().EndWith(".html");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlReportAsync_LimitsTo20Rows()
+    {
+        var alerts = Enumerable.Range(1, 25).Select(i => new AlertDto
+        {
+            Id = Guid.NewGuid(),
+            AlertName = $"Alert{i}",
+            Severity = AlertSeverity.Info,
+            Status = AlertStatus.Active,
+            Source = "S",
+            TriggeredAt = DateTime.Now
+        }).ToList();
+        var metrics = new List<MetricDto>();
+        var filename = $"test_limit_{Guid.NewGuid()}.html";
+
+        var filepath = await _sut.GenerateHtmlReportAsync(alerts, metrics, filename);
+        _createdFiles.Add(filepath);
+
+        var content = await File.ReadAllTextAsync(filepath);
+        content.Should().Contain("Alert20");
+        content.Should().NotContain("Alert21");
+    }
+
+    #endregion
+
+    #region JSON Export Tests
+
+    [Fact]
+    public async Task ExportToJsonAsync_WithEmptyData_CreatesEmptyArray()
+    {
+        var data = new List<AlertDto>();
+        var filename = $"test_json_{Guid.NewGuid()}.json";
+
+        var filepath = await _sut.ExportToJsonAsync(data, "alerts", filename);
+        _createdFiles.Add(filepath);
+
+        File.Exists(filepath).Should().BeTrue();
+        var content = await File.ReadAllTextAsync(filepath);
+        content.Trim().Should().Be("[]");
+    }
+
+    [Fact]
+    public async Task ExportToJsonAsync_WithData_CreatesIndentedJson()
+    {
+        var data = new List<MetricDto>
+        {
+            new MetricDto { Id = Guid.NewGuid(), MetricName = "TestMetric", Category = "Cat", Value = 99.0, Unit = "u", Timestamp = DateTime.Now }
+        };
+        var filename = $"test_json_data_{Guid.NewGuid()}.json";
+
+        var filepath = await _sut.ExportToJsonAsync(data, "metrics", filename);
+        _createdFiles.Add(filepath);
+
+        var content = await File.ReadAllTextAsync(filepath);
+        content.Should().Contain("TestMetric");
+        content.Should().Contain("\n"); // indented JSON
+    }
+
+    [Fact]
+    public async Task ExportToJsonAsync_DefaultFilename_UsesNameParameter()
+    {
+        var data = new List<AlertDto>();
+
+        var filepath = await _sut.ExportToJsonAsync(data, "myexport");
+        _createdFiles.Add(filepath);
+
+        var filename = Path.GetFileName(filepath);
+        filename.Should().StartWith("myexport_");
+        filename.Should().EndWith(".json");
+    }
+
+    #endregion
+
+    #region EscapeCsv Tests
+
+    private static string InvokeEscapeCsv(string? value)
+    {
+        var method = typeof(ExportService).GetMethod("EscapeCsv",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        return (string)method.Invoke(null, new object?[] { value })!;
+    }
+
+    [Fact]
+    public void EscapeCsv_Null_ReturnsEmpty()
+    {
+        InvokeEscapeCsv(null).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void EscapeCsv_Empty_ReturnsEmpty()
+    {
+        InvokeEscapeCsv("").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void EscapeCsv_NormalText_ReturnsUnchanged()
+    {
+        InvokeEscapeCsv("hello world").Should().Be("hello world");
+    }
+
+    [Fact]
+    public void EscapeCsv_WithDoubleQuotes_DoublesQuotes()
+    {
+        InvokeEscapeCsv("say \"hello\"").Should().Be("say \"\"hello\"\"");
+    }
+
+    #endregion
 }

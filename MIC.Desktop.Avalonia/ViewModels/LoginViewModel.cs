@@ -20,6 +20,7 @@ public class LoginViewModel : ViewModelBase
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger _logger;
+    private readonly Func<Task> _showFirstTimeSetupAsync;
 
     // Login properties
     private string _username = string.Empty;
@@ -36,10 +37,11 @@ public class LoginViewModel : ViewModelBase
     private string _registerFullName = string.Empty;
     private bool _showRegistration = false;
 
-    public LoginViewModel(IAuthenticationService authenticationService)
+    public LoginViewModel(IAuthenticationService authenticationService, Func<Task>? firstTimeSetupLauncher = null)
     {
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
         _logger = Log.ForContext<LoginViewModel>();
+        _showFirstTimeSetupAsync = firstTimeSetupLauncher ?? ShowFirstTimeSetupDialogAsync;
 
         // Login commands
         var canLogin = this.WhenAnyValue(
@@ -284,19 +286,23 @@ public class LoginViewModel : ViewModelBase
 
             _logger.Information("?? Registration attempt for username: {Username}, email: {Email}", RegisterUsername, RegisterEmail);
 
+            var fullName = string.IsNullOrWhiteSpace(RegisterFullName)
+                ? RegisterUsername
+                : RegisterFullName;
+
             // Register the user
             var result = await _authenticationService.RegisterAsync(
                 RegisterUsername,
                 RegisterEmail,
                 RegisterPassword,
-                RegisterFullName ?? RegisterUsername).ConfigureAwait(false);
+                fullName).ConfigureAwait(false);
 
             if (result.Success && result.User is { } user)
             {
                 _logger.Information("? Registration successful for {Username}", RegisterUsername);
 
                 // Show first-time setup dialog BEFORE auto-login
-                await ShowFirstTimeSetupDialogAsync();
+                await _showFirstTimeSetupAsync();
 
                 // Auto-login after successful registration
                 Username = RegisterUsername;

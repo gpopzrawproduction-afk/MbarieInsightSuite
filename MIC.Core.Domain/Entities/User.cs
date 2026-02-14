@@ -1,3 +1,4 @@
+using Ardalis.GuardClauses;
 using System;
 using MIC.Core.Domain.Abstractions;
 
@@ -45,7 +46,7 @@ public sealed class User : BaseEntity
 
 	public DateTimeOffset? LastLoginAt { get; set; }
 
-	public new DateTimeOffset CreatedAt { get; set; }
+	public new DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
 	public DateTimeOffset UpdatedAt { get; set; }
 	
@@ -60,4 +61,67 @@ public sealed class User : BaseEntity
 	
 	// Language preference for multilingual support
 	public UserLanguage Language { get; set; } = UserLanguage.English;
+
+	public User() => UpdatedAt = CreatedAt;
+
+	public void SetCredentials(string username, string email)
+	{
+		var sanitizedUsername = Guard.Against.NullOrWhiteSpace(username).Trim();
+		var sanitizedEmail = Guard.Against.NullOrWhiteSpace(email).Trim();
+
+		Username = sanitizedUsername;
+		Email = sanitizedEmail;
+		Touch();
+	}
+
+	public void SetPasswordHash(string passwordHash, string salt)
+	{
+		PasswordHash = Guard.Against.NullOrWhiteSpace(passwordHash);
+		Salt = Guard.Against.NullOrWhiteSpace(salt);
+		Touch();
+	}
+
+	public void SetRole(UserRole role)
+	{
+		Role = role;
+		Touch();
+	}
+
+	public void SetLanguage(UserLanguage language)
+	{
+		Language = language;
+		Touch();
+	}
+
+	public void UpdateProfile(string? fullName = null, string? jobPosition = null, string? department = null, string? seniorityLevel = null)
+	{
+		FullName = string.IsNullOrWhiteSpace(fullName) ? null : fullName.Trim();
+		JobPosition = string.IsNullOrWhiteSpace(jobPosition) ? null : jobPosition.Trim();
+		Department = string.IsNullOrWhiteSpace(department) ? null : department.Trim();
+		SeniorityLevel = string.IsNullOrWhiteSpace(seniorityLevel) ? null : seniorityLevel.Trim();
+		Touch();
+	}
+
+	public void RecordLogin(DateTimeOffset loginTime)
+	{
+		LastLoginAt = loginTime;
+		UpdatedAt = loginTime;
+	}
+
+	public void Deactivate()
+	{
+		IsActive = false;
+		Touch();
+	}
+
+	public void Activate()
+	{
+		IsActive = true;
+		Touch();
+	}
+
+	private void Touch()
+	{
+		UpdatedAt = DateTimeOffset.UtcNow;
+	}
 }

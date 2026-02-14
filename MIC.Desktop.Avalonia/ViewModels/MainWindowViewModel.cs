@@ -73,6 +73,7 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
         CommandPalette = serviceProvider.GetRequiredService<CommandPaletteViewModel>();
         _notificationService = serviceProvider.GetRequiredService<INotificationService>();
         NotificationCenter = serviceProvider.GetRequiredService<NotificationCenterViewModel>();
+        NotificationsPanel = serviceProvider.GetRequiredService<NotificationsPanelViewModel>();
 
         _notificationService.HistoryChanged += (_, _) => UpdateUnreadIndicators();
         UpdateUnreadIndicators();
@@ -536,6 +537,11 @@ public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
 
     public NotificationCenterViewModel NotificationCenter { get; }
     public ReadOnlyObservableCollection<NotificationEntry> Notifications => NotificationCenter.Notifications;
+
+    /// <summary>
+    /// Notifications slide-in panel view model.
+    /// </summary>
+    public NotificationsPanelViewModel NotificationsPanel { get; }
 
     private int _unreadNotificationCount;
     public int UnreadNotificationCount

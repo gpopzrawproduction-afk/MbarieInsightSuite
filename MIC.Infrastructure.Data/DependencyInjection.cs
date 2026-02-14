@@ -54,6 +54,8 @@ public static class DependencyInjection
         services.AddScoped<IEmailRepository, EmailRepository>();
         services.AddScoped<IEmailAccountRepository, EmailAccountRepository>();
         services.AddScoped<IChatHistoryRepository, ChatHistoryRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddSingleton<IAttachmentStorageService, AttachmentStorageService>();
         services.AddScoped<IEmailSyncService, RealEmailSyncService>();
         services.AddScoped<ISettingsCloudSyncService, NoOpSettingsCloudSyncService>();

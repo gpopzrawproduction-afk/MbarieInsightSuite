@@ -1,0 +1,465 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:MIC.Desktop.Avalonia.ViewModels"
+             x:Class="MIC.Desktop.Avalonia.Views.ReportsView">
+
+  <UserControl.Styles>
+    <!-- Report type card style -->
+    <Style Selector="Border.report-card">
+      <Setter Property="Background" Value="#1F283366"/>
+      <Setter Property="BorderBrush" Value="#00E5FF26"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Border.report-card:pointerover">
+      <Setter Property="BorderBrush" Value="#00E5FF66"/>
+      <Setter Property="RenderTransform" Value="scale(1.02)"/>
+    </Style>
+    <Style Selector="Border.report-card.selected">
+      <Setter Property="BorderBrush" Value="#00E5FF"/>
+      <Setter Property="Background" Value="#00E5FF15"/>
+    </Style>
+
+    <!-- Format card style -->
+    <Style Selector="Border.format-card">
+      <Setter Property="Background" Value="#1F283366"/>
+      <Setter Property="BorderBrush" Value="#00E5FF26"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Border.format-card.selected">
+      <Setter Property="Background" Value="#00E5FF"/>
+      <Setter Property="BorderBrush" Value="#00E5FF"/>
+    </Style>
+
+    <!-- Generate button -->
+    <Style Selector="Button.generate-btn">
+      <Setter Property="Background" Value="#00E5FF"/>
+      <Setter Property="Foreground" Value="#0B0C10"/>
+      <Setter Property="FontFamily" Value="Rajdhani"/>
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="0,14"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.2"/>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.generate-btn:pressed">
+      <Setter Property="RenderTransform" Value="scale(0.97)"/>
+    </Style>
+    <Style Selector="Button.generate-btn:disabled">
+      <Setter Property="Background" Value="#00E5FF55"/>
+    </Style>
+
+    <!-- Ghost button -->
+    <Style Selector="Button.ghost-btn">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="#00E5FF40"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Foreground" Value="#66FCF1"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Padding" Value="8,4"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+
+    <!-- Danger ghost button -->
+    <Style Selector="Button.danger-btn">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="#FF3D3D40"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Foreground" Value="#FF3D3D"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Padding" Value="8,4"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+
+    <!-- Glass panel -->
+    <Style Selector="Border.glass-panel">
+      <Setter Property="Background" Value="#1F283366"/>
+      <Setter Property="BorderBrush" Value="#00E5FF26"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="20" ColumnDefinitions="1*">
+
+    <!-- ??? HEADER ???????????????????????????????????????????????????????? -->
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,20">
+      <StackPanel Grid.Column="0">
+        <TextBlock Text="INTELLIGENCE REPORTS"
+                   FontFamily="Rajdhani" FontSize="28" FontWeight="Bold"
+                   Foreground="#00E5FF"/>
+        <TextBlock FontFamily="Exo 2" FontSize="12" Foreground="#4A5568">
+          <Run Text="{Binding Reports.Count, StringFormat='{}{0} REPORTS GENERATED'}"/>
+        </TextBlock>
+      </StackPanel>
+    </Grid>
+
+    <!-- ??? REPORT TYPE CARDS ????????????????????????????????????????????? -->
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Disabled"
+                  Margin="0,0,0,16">
+      <StackPanel Orientation="Horizontal" Spacing="12">
+
+        <!-- Alert Summary Card -->
+        <Border Classes.selected="{Binding IsAlertSummary}"
+                Classes="report-card" Width="180" Height="140">
+          <Border.GestureRecognizers>
+            <TapGestureRecognizer
+              Command="{Binding SelectReportTypeCommand}"
+              CommandParameter="0"/>
+          </Border.GestureRecognizers>
+          <StackPanel Spacing="8">
+            <TextBlock Text="??" FontSize="32"/>
+            <TextBlock Text="ALERT SUMMARY" FontFamily="Rajdhani" FontSize="14"
+                       FontWeight="Bold" Foreground="#C5C6C7" TextWrapping="Wrap"/>
+            <TextBlock Text="All triggered alerts with stats"
+                       FontFamily="Exo 2" FontSize="11"
+                       Foreground="#4A5568" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Email Activity Card -->
+        <Border Classes.selected="{Binding IsEmailActivity}"
+                Classes="report-card" Width="180" Height="140">
+          <Border.GestureRecognizers>
+            <TapGestureRecognizer
+              Command="{Binding SelectReportTypeCommand}"
+              CommandParameter="1"/>
+          </Border.GestureRecognizers>
+          <StackPanel Spacing="8">
+            <TextBlock Text="??" FontSize="32"/>
+            <TextBlock Text="EMAIL ACTIVITY" FontFamily="Rajdhani" FontSize="14"
+                       FontWeight="Bold" Foreground="#C5C6C7" TextWrapping="Wrap"/>
+            <TextBlock Text="Inbox trends and top senders"
+                       FontFamily="Exo 2" FontSize="11"
+                       Foreground="#4A5568" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Metrics Trend Card -->
+        <Border Classes.selected="{Binding IsMetricsTrend}"
+                Classes="report-card" Width="180" Height="140">
+          <Border.GestureRecognizers>
+            <TapGestureRecognizer
+              Command="{Binding SelectReportTypeCommand}"
+              CommandParameter="2"/>
+          </Border.GestureRecognizers>
+          <StackPanel Spacing="8">
+            <TextBlock Text="??" FontSize="32"/>
+            <TextBlock Text="METRICS TREND" FontFamily="Rajdhani" FontSize="14"
+                       FontWeight="Bold" Foreground="#C5C6C7" TextWrapping="Wrap"/>
+            <TextBlock Text="Historical metric analysis"
+                       FontFamily="Exo 2" FontSize="11"
+                       Foreground="#4A5568" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+
+        <!-- AI Chat Summary Card -->
+        <Border Classes.selected="{Binding IsAiChatSummary}"
+                Classes="report-card" Width="180" Height="140">
+          <Border.GestureRecognizers>
+            <TapGestureRecognizer
+              Command="{Binding SelectReportTypeCommand}"
+              CommandParameter="3"/>
+          </Border.GestureRecognizers>
+          <StackPanel Spacing="8">
+            <TextBlock Text="??" FontSize="32"/>
+            <TextBlock Text="AI CHAT SUMMARY" FontFamily="Rajdhani" FontSize="14"
+                       FontWeight="Bold" Foreground="#C5C6C7" TextWrapping="Wrap"/>
+            <TextBlock Text="AI interaction summary"
+                       FontFamily="Exo 2" FontSize="11"
+                       Foreground="#4A5568" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Full Dashboard Card -->
+        <Border Classes.selected="{Binding IsFullDashboard}"
+                Classes="report-card" Width="180" Height="140">
+          <Border.GestureRecognizers>
+            <TapGestureRecognizer
+              Command="{Binding SelectReportTypeCommand}"
+              CommandParameter="4"/>
+          </Border.GestureRecognizers>
+          <StackPanel Spacing="8">
+            <TextBlock Text="??" FontSize="32"/>
+            <TextBlock Text="FULL DASHBOARD" FontFamily="Rajdhani" FontSize="14"
+                       FontWeight="Bold" Foreground="#C5C6C7" TextWrapping="Wrap"/>
+            <TextBlock Text="Complete intelligence overview"
+                       FontFamily="Exo 2" FontSize="11"
+                       Foreground="#4A5568" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ??? CONFIGURATION PANEL ?????????????????????????????????????????? -->
+    <Border Grid.Row="2" Classes="glass-panel" Margin="0,0,0,16" Padding="20">
+      <StackPanel Spacing="16">
+
+        <Grid ColumnDefinitions="*,1,*,1,*" ColumnSpacing="20">
+
+          <!-- Date Range -->
+          <StackPanel Grid.Column="0" Spacing="10">
+            <TextBlock Text="DATE RANGE" FontFamily="Exo 2" FontSize="10"
+                       Foreground="#4A5568" LetterSpacing="2"/>
+            <StackPanel Spacing="8">
+              <StackPanel Spacing="4">
+                <TextBlock Text="FROM" FontFamily="Exo 2" FontSize="10"
+                           Foreground="#4A5568"/>
+                <CalendarDatePicker SelectedDate="{Binding FromDate}"
+                                    Background="#0D1117"
+                                    Foreground="#C5C6C7"
+                                    BorderBrush="#00E5FF26"/>
+              </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="TO" FontFamily="Exo 2" FontSize="10"
+                           Foreground="#4A5568"/>
+                <CalendarDatePicker SelectedDate="{Binding ToDate}"
+                                    Background="#0D1117"
+                                    Foreground="#C5C6C7"
+                                    BorderBrush="#00E5FF26"/>
+              </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Button Content="THIS WEEK" Classes="ghost-btn"
+                      Command="{Binding SelectThisWeekCommand}"/>
+              <Button Content="THIS MONTH" Classes="ghost-btn"
+                      Command="{Binding SelectThisMonthCommand}"/>
+              <Button Content="LAST 30D" Classes="ghost-btn"
+                      Command="{Binding SelectLast30DaysCommand}"/>
+            </StackPanel>
+          </StackPanel>
+
+          <!-- Vertical Divider -->
+          <Rectangle Grid.Column="1" Fill="#00E5FF1A" Width="1"/>
+
+          <!-- Format -->
+          <StackPanel Grid.Column="2" Spacing="10">
+            <TextBlock Text="EXPORT FORMAT" FontFamily="Exo 2" FontSize="10"
+                       Foreground="#4A5568" LetterSpacing="2"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <!-- PDF -->
+              <Border Classes="format-card" Classes.selected="{Binding IsPdfSelected}">
+                <Border.GestureRecognizers>
+                  <TapGestureRecognizer
+                    Command="{Binding SelectFormatCommand}"
+                    CommandParameter="0"/>
+                </Border.GestureRecognizers>
+                <StackPanel HorizontalAlignment="Center" Spacing="4">
+                  <TextBlock Text="??" FontSize="20" HorizontalAlignment="Center"/>
+                  <TextBlock Text="PDF" FontFamily="Exo 2" FontSize="11"
+                             HorizontalAlignment="Center" Foreground="#C5C6C7"/>
+                </StackPanel>
+              </Border>
+              <!-- XLSX -->
+              <Border Classes="format-card" Classes.selected="{Binding IsXlsxSelected}">
+                <Border.GestureRecognizers>
+                  <TapGestureRecognizer
+                    Command="{Binding SelectFormatCommand}"
+                    CommandParameter="1"/>
+                </Border.GestureRecognizers>
+                <StackPanel HorizontalAlignment="Center" Spacing="4">
+                  <TextBlock Text="??" FontSize="20" HorizontalAlignment="Center"/>
+                  <TextBlock Text="EXCEL" FontFamily="Exo 2" FontSize="11"
+                             HorizontalAlignment="Center" Foreground="#C5C6C7"/>
+                </StackPanel>
+              </Border>
+              <!-- CSV -->
+              <Border Classes="format-card" Classes.selected="{Binding IsCsvSelected}">
+                <Border.GestureRecognizers>
+                  <TapGestureRecognizer
+                    Command="{Binding SelectFormatCommand}"
+                    CommandParameter="2"/>
+                </Border.GestureRecognizers>
+                <StackPanel HorizontalAlignment="Center" Spacing="4">
+                  <TextBlock Text="??" FontSize="20" HorizontalAlignment="Center"/>
+                  <TextBlock Text="CSV" FontFamily="Exo 2" FontSize="11"
+                             HorizontalAlignment="Center" Foreground="#C5C6C7"/>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </StackPanel>
+
+          <!-- Vertical Divider -->
+          <Rectangle Grid.Column="3" Fill="#00E5FF1A" Width="1"/>
+
+          <!-- Options -->
+          <StackPanel Grid.Column="4" Spacing="10">
+            <TextBlock Text="OPTIONS" FontFamily="Exo 2" FontSize="10"
+                       Foreground="#4A5568" LetterSpacing="2"/>
+            <StackPanel Spacing="12">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ToggleSwitch IsChecked="{Binding IncludeCharts}"
+                             OnContent="" OffContent=""
+                             Foreground="#C5C6C7"/>
+                <TextBlock Text="Include Charts" FontFamily="Exo 2" FontSize="12"
+                           Foreground="#C5C6C7" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ToggleSwitch IsChecked="{Binding IncludeRawData}"
+                             OnContent="" OffContent=""
+                             Foreground="#C5C6C7"/>
+                <TextBlock Text="Include Raw Data" FontFamily="Exo 2" FontSize="12"
+                           Foreground="#C5C6C7" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ToggleSwitch IsChecked="{Binding EmailToSelf}"
+                             OnContent="" OffContent=""
+                             Foreground="#C5C6C7"/>
+                <TextBlock Text="Email Report to Me" FontFamily="Exo 2" FontSize="12"
+                           Foreground="#C5C6C7" VerticalAlignment="Center"/>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+
+        </Grid>
+
+        <!-- Generate Button + Progress -->
+        <StackPanel Spacing="8">
+          <Button Classes="generate-btn"
+                  Content="{Binding GenerationStatusText,
+                    TargetNullValue='GENERATE REPORT',
+                    FallbackValue='GENERATE REPORT'}"
+                  Command="{Binding GenerateReportCommand}"
+                  IsEnabled="{Binding !IsGenerating}"
+                  HorizontalAlignment="Stretch"/>
+
+          <!-- Progress bar -->
+          <ProgressBar Value="{Binding GenerationProgress}"
+                       Minimum="0" Maximum="1"
+                       Height="3"
+                       Foreground="#00E5FF"
+                       Background="#00E5FF1A"
+                       CornerRadius="2"
+                       IsVisible="{Binding IsGenerating}">
+            <ProgressBar.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Value" Duration="0:0:0.3"/>
+              </Transitions>
+            </ProgressBar.Transitions>
+          </ProgressBar>
+        </StackPanel>
+
+      </StackPanel>
+    </Border>
+
+    <!-- ??? RECENT REPORTS TABLE ???????????????????????????????????????? -->
+    <Border Grid.Row="3" Classes="glass-panel" Padding="20">
+      <DockPanel>
+
+        <!-- Table Header -->
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+          <TextBlock Grid.Column="0" Text="RECENT REPORTS"
+                     FontFamily="Rajdhani" FontSize="18"
+                     FontWeight="Bold" Foreground="#C5C6C7"/>
+        </Grid>
+
+        <!-- Empty State -->
+        <StackPanel IsVisible="{Binding !HasReports}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+          <TextBlock Text="??" FontSize="64" HorizontalAlignment="Center" Opacity="0.3"/>
+          <TextBlock Text="NO REPORTS GENERATED"
+                     FontFamily="Rajdhani" FontSize="22"
+                     Foreground="#4A5568" HorizontalAlignment="Center"/>
+          <TextBlock Text="Select a report type above and click Generate"
+                     FontFamily="Exo 2" FontSize="12"
+                     Foreground="#4A5568" HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Reports DataGrid -->
+        <DataGrid IsVisible="{Binding HasReports}"
+                  Items="{Binding Reports}"
+                  SelectedItem="{Binding SelectedReport}"
+                  IsReadOnly="True"
+                  CanUserSortColumns="True"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  RowBackground="#0D1117"
+                  AlternatingRowBackground="#1F283333"
+                  Foreground="#C5C6C7"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="#00E5FF1A"
+                  HeadersVisibility="Column">
+
+          <DataGrid.Columns>
+
+            <DataGridTextColumn Header="REPORT TYPE"
+                                Binding="{Binding Type}"
+                                Width="150"
+                                FontFamily="Exo 2"
+                                FontSize="12"/>
+
+            <DataGridTextColumn Header="GENERATED"
+                                Binding="{Binding GeneratedAt,
+                                  StringFormat='{}{0:dd MMM yyyy  HH:mm}'}"
+                                Width="170"
+                                FontFamily="Cascadia Code, Consolas"
+                                FontSize="11"/>
+
+            <DataGridTextColumn Header="FORMAT"
+                                Binding="{Binding Format}"
+                                Width="80"
+                                FontFamily="Exo 2"
+                                FontSize="12"/>
+
+            <DataGridTextColumn Header="SIZE"
+                                Binding="{Binding FileSizeFormatted}"
+                                Width="80"
+                                FontFamily="Cascadia Code, Consolas"
+                                FontSize="11"/>
+
+            <!-- Actions Column -->
+            <DataGridTemplateColumn Header="ACTIONS" Width="*">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="6"
+                              VerticalAlignment="Center" Margin="4,0">
+                    <Button Content="OPEN"
+                            Classes="ghost-btn"
+                            Command="{Binding $parent[UserControl].DataContext.OpenReportCommand}"
+                            CommandParameter="{Binding}"
+                            IsEnabled="{Binding FileExists}"/>
+                    <Button Content="REGENERATE"
+                            Classes="ghost-btn"
+                            Command="{Binding $parent[UserControl].DataContext.RegenerateReportCommand}"
+                            CommandParameter="{Binding}"/>
+                    <Button Content="DELETE"
+                            Classes="danger-btn"
+                            Command="{Binding $parent[UserControl].DataContext.DeleteReportCommand}"
+                            CommandParameter="{Binding}"/>
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+          </DataGrid.Columns>
+        </DataGrid>
+
+      </DockPanel>
+    </Border>
+
+  </Grid>
+</UserControl>

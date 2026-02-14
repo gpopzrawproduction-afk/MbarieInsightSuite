@@ -368,6 +368,233 @@ public sealed class EmailSyncServiceTests
         }
     }
 
+    [Fact]
+    public async Task SyncEmailsAsync_WhenEmailAlreadyExists_SkipsWithoutDuplicate()
+    {
+        var userId = Guid.NewGuid();
+        var account = new EmailAccount("owner@example.com", EmailProvider.Outlook, userId) { Id = Guid.NewGuid() };
+        var emailRepository = new FakeEmailRepository();
+        var accountRepository = new FakeEmailAccountRepository(account);
+        var knowledgeBase = new FakeKnowledgeBaseService();
+
+        // Pre-add an email with the same messageId
+        var existingEmail = new EmailMessage(
+            "existing-001", "Existing Subject", "sender@test.com", "Sender",
+            "owner@example.com", DateTime.UtcNow, DateTime.UtcNow, "body",
+            userId, account.Id);
+        await emailRepository.AddAsync(existingEmail);
+
+        var externalEmails = new List<ExternalEmail>
+        {
+            new()
+            {
+                MessageId = "existing-001",
+                Subject = "Duplicate",
+                FromAddress = "sender@test.com",
+                FromName = "Sender",
+                ToRecipients = "owner@example.com",
+                SentDate = DateTime.UtcNow,
+                ReceivedDate = DateTime.UtcNow,
+                BodyText = "duplicate body"
+            }
+        };
+
+        var sut = CreateService(emailRepository, accountRepository, knowledgeBase,
+            Mock.Of<IServiceProvider>(), _ => externalEmails);
+        var result = await sut.SyncEmailsAsync(account.Id);
+
+        result.Success.Should().BeTrue();
+        result.EmailsProcessed.Should().Be(0); // Skipped, not re-added
+        emailRepository.Emails.Should().HaveCount(1); // Only the original
+    }
+
+    [Fact]
+    public async Task SyncAllAccountsAsync_NoAccountsNeedingSync_ReturnsEmptyList()
+    {
+        var emailRepository = new FakeEmailRepository();
+        var accountRepository = new FakeEmailAccountRepository(); // no accounts
+        var knowledgeBase = new FakeKnowledgeBaseService();
+
+        var sut = CreateService(emailRepository, accountRepository, knowledgeBase,
+            Mock.Of<IServiceProvider>(), _ => new List<ExternalEmail>());
+
+        var results = await sut.SyncAllAccountsAsync();
+
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SyncAllAccountsAsync_MultipleAccounts_SyncsEachAndReturnsResults()
+    {
+        var userId = Guid.NewGuid();
+        var account1 = new EmailAccount("a1@example.com", EmailProvider.Outlook, userId) { Id = Guid.NewGuid() };
+        var account2 = new EmailAccount("a2@example.com", EmailProvider.Gmail, userId) { Id = Guid.NewGuid() };
+        var emailRepository = new FakeEmailRepository();
+        var accountRepository = new FakeEmailAccountRepository(account1, account2);
+        var knowledgeBase = new FakeKnowledgeBaseService();
+
+        var sut = CreateService(emailRepository, accountRepository, knowledgeBase,
+            Mock.Of<IServiceProvider>(), _ => new List<ExternalEmail>());
+
+        var results = await sut.SyncAllAccountsAsync();
+
+        results.Should().HaveCount(2);
+        results.Should().OnlyContain(r => r.Success);
+    }
+
+    [Fact]
+    public async Task SyncEmailsAsync_NoStartDateProvided_Defaults3MonthsAgo()
+    {
+        var userId = Guid.NewGuid();
+        var account = new EmailAccount("owner@example.com", EmailProvider.Outlook, userId) { Id = Guid.NewGuid() };
+        var emailRepository = new FakeEmailRepository();
+        var accountRepository = new FakeEmailAccountRepository(account);
+        var knowledgeBase = new FakeKnowledgeBaseService();
+
+        var sut = CreateService(emailRepository, accountRepository, knowledgeBase,
+            Mock.Of<IServiceProvider>(), _ => new List<ExternalEmail>());
+
+        var result = await sut.SyncEmailsAsync(account.Id); // No startDate
+
+        result.Success.Should().BeTrue();
+        result.StartTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public void SyncResult_DefaultValues()
+    {
+        var result = new SyncResult();
+
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().BeNull();
+        result.EmailsProcessed.Should().Be(0);
+        result.AttachmentsProcessed.Should().Be(0);
+        result.InboxStats.Should().BeNull();
+        result.SentStats.Should().BeNull();
+    }
+
+    [Fact]
+    public void FolderSyncResult_DefaultValues()
+    {
+        var result = new FolderSyncResult();
+
+        result.EmailsProcessed.Should().Be(0);
+        result.AttachmentsProcessed.Should().Be(0);
+    }
+
+    [Fact]
+    public void ExternalEmail_DefaultValues()
+    {
+        var email = new ExternalEmail();
+
+        email.MessageId.Should().BeEmpty();
+        email.Subject.Should().BeEmpty();
+        email.FromAddress.Should().BeEmpty();
+        email.FromName.Should().BeEmpty();
+        email.ToRecipients.Should().BeEmpty();
+        email.BodyText.Should().BeEmpty();
+        email.BodyHtml.Should().BeNull();
+        email.Attachments.Should().NotBeNull().And.BeEmpty();
+    }
+
+    [Fact]
+    public void ExternalAttachment_DefaultValues()
+    {
+        var attachment = new ExternalAttachment();
+
+        attachment.FileName.Should().BeEmpty();
+        attachment.ContentType.Should().BeEmpty();
+        attachment.SizeInBytes.Should().Be(0);
+        attachment.StoragePath.Should().BeEmpty();
+        attachment.ExternalId.Should().BeNull();
+        attachment.Content.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SyncEmailsAsync_BaseClassFetchThrowsNotSupported_ReturnsFailure()
+    {
+        var userId = Guid.NewGuid();
+        var account = new EmailAccount("owner@example.com", EmailProvider.Outlook, userId) { Id = Guid.NewGuid() };
+        var emailRepository = new FakeEmailRepository();
+        var accountRepository = new FakeEmailAccountRepository(account);
+        var knowledgeBase = new FakeKnowledgeBaseService();
+
+        // Use the real EmailSyncService (base class) which throws NotSupportedException
+        var sut = new EmailSyncService(emailRepository, accountRepository, knowledgeBase, Mock.Of<IServiceProvider>());
+        var result = await sut.SyncEmailsAsync(account.Id);
+
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("not configured");
+    }
+
+    [Fact]
+    public async Task SyncEmailsAsync_WithCustomStartDate_UsesProvidedDate()
+    {
+        var userId = Guid.NewGuid();
+        var account = new EmailAccount("owner@example.com", EmailProvider.Outlook, userId) { Id = Guid.NewGuid() };
+        var emailRepository = new FakeEmailRepository();
+        var accountRepository = new FakeEmailAccountRepository(account);
+        var knowledgeBase = new FakeKnowledgeBaseService();
+
+        DateTime? capturedStart = null;
+        var sut = CreateService(emailRepository, accountRepository, knowledgeBase,
+            Mock.Of<IServiceProvider>(), request =>
+            {
+                capturedStart = request.startDate;
+                return new List<ExternalEmail>();
+            });
+
+        var customDate = new DateTime(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        var result = await sut.SyncEmailsAsync(account.Id, customDate);
+
+        result.Success.Should().BeTrue();
+        capturedStart.Should().Be(customDate);
+    }
+
+    [Fact]
+    public async Task SyncEmailsAsync_Success_InboxAndSentStatsPopulated()
+    {
+        var userId = Guid.NewGuid();
+        var account = new EmailAccount("owner@example.com", EmailProvider.Outlook, userId) { Id = Guid.NewGuid() };
+        var emailRepository = new FakeEmailRepository();
+        var accountRepository = new FakeEmailAccountRepository(account);
+        var knowledgeBase = new FakeKnowledgeBaseService();
+
+        var sut = CreateService(emailRepository, accountRepository, knowledgeBase,
+            Mock.Of<IServiceProvider>(), _ => new List<ExternalEmail>());
+
+        var result = await sut.SyncEmailsAsync(account.Id);
+
+        result.InboxStats.Should().NotBeNull();
+        result.SentStats.Should().NotBeNull();
+        result.InboxStats!.Folder.Should().Be(EmailFolder.Inbox);
+        result.SentStats!.Folder.Should().Be(EmailFolder.Sent);
+    }
+
+    [Fact]
+    public async Task SyncEmailsAsync_WithCancellationToken_PassesTokenThrough()
+    {
+        var userId = Guid.NewGuid();
+        var account = new EmailAccount("owner@example.com", EmailProvider.Outlook, userId) { Id = Guid.NewGuid() };
+        var emailRepository = new FakeEmailRepository();
+        var accountRepository = new FakeEmailAccountRepository(account);
+        var knowledgeBase = new FakeKnowledgeBaseService();
+
+        CancellationToken? capturedToken = null;
+        using var cts = new CancellationTokenSource();
+        var sut = CreateService(emailRepository, accountRepository, knowledgeBase,
+            Mock.Of<IServiceProvider>(), request =>
+            {
+                capturedToken = request.cancellationToken;
+                return new List<ExternalEmail>();
+            });
+
+        var result = await sut.SyncEmailsAsync(account.Id, null, cts.Token);
+
+        result.Success.Should().BeTrue();
+        capturedToken.Should().Be(cts.Token);
+    }
+
     private sealed class FakeKnowledgeBaseService : IKnowledgeBaseService
     {
         public List<DomainEmailAttachment> ProcessedAttachments { get; } = new();

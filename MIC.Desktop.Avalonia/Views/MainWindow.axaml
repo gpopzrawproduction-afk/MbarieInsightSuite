@@ -333,6 +333,31 @@
             </Grid>
         </Border>
 
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- NOTIFICATIONS SLIDE-IN PANEL -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- Backdrop: semi-transparent, click to close -->
+        <Border Grid.Row="0" Grid.RowSpan="3"
+                Background="#880B0C10"
+                IsVisible="{Binding NotificationsPanel.IsPanelOpen}"
+                ZIndex="100">
+          <Border.GestureRecognizers>
+            <TapGestureRecognizer
+              Command="{Binding NotificationsPanel.ClosePanelCommand}"/>
+          </Border.GestureRecognizers>
+        </Border>
+
+        <!-- Notifications slide-in panel (right-aligned) -->
+        <views:NotificationsPanelView
+          Grid.Row="0" Grid.RowSpan="3"
+          HorizontalAlignment="Right"
+          VerticalAlignment="Stretch"
+          ZIndex="101"
+          DataContext="{Binding NotificationsPanel}"/>
+
+
+
     </Grid>
 
 </Window>
+

@@ -40,7 +40,7 @@ public sealed class NotificationServiceTests : IDisposable
         ResetSingleton();
     }
 
-    [Fact(Skip = "File locking issue in NotificationHistoryScope - intermittent test failure")]
+    [Fact]
     public void ShowSuccess_AddsNotificationAndHistory()
     {
         var service = NotificationService.Instance;
@@ -66,7 +66,7 @@ public sealed class NotificationServiceTests : IDisposable
         Assert.False(entry.IsRead);
     }
 
-    [Fact(Skip = "Intermittent failure due to file persistence timing issues")]
+    [Fact]
     public void MarkAllAsRead_SetsHistoryEntriesToReadAndPersists()
     {
         var service = NotificationService.Instance;
@@ -101,7 +101,7 @@ public sealed class NotificationServiceTests : IDisposable
         Assert.Empty(service.NotificationHistory);
     }
 
-    [Fact(Skip = "File locking issue in NotificationHistoryScope - intermittent test failure")]
+    [Fact]
     public void ShowInfo_LimitsActiveNotificationsToFive()
     {
         var service = NotificationService.Instance;
@@ -117,7 +117,7 @@ public sealed class NotificationServiceTests : IDisposable
         Assert.Equal(7, service.NotificationHistory.Count);
     }
 
-    [Fact(Skip = "File locking issue in NotificationHistoryScope - intermittent test failure")]
+    [Fact]
     public void Constructor_WithExistingHistory_LoadsEntries()
     {
         var existing = new List<NotificationRecordDto>
@@ -158,6 +158,96 @@ public sealed class NotificationServiceTests : IDisposable
             second => Assert.Equal(existing[0].Id, second.Id));
     }
 
+    [Fact]
+    public void ShowError_AddsNotificationWithErrorType()
+    {
+        var service = NotificationService.Instance;
+        service.ShowError("Connection failed", "Error", "Network");
+        ProcessDispatcherJobs();
+
+        Assert.Equal(1, service.UnreadCount);
+        Assert.Single(service.Notifications);
+        var toast = service.Notifications.First();
+        Assert.Equal(ToastType.Error, toast.Type);
+        Assert.Equal("Error", toast.Title);
+        Assert.Equal("Network", toast.Category);
+    }
+
+    [Fact]
+    public void MarkAsRead_SetsSpecificEntryToRead()
+    {
+        var service = NotificationService.Instance;
+        service.ShowInfo("First");
+        service.ShowInfo("Second");
+        ProcessDispatcherJobs();
+
+        var entryId = service.NotificationHistory.First().Id;
+        service.MarkAsRead(entryId);
+        ProcessDispatcherJobs();
+
+        var entry = service.NotificationHistory.First(e => e.Id == entryId);
+        Assert.True(entry.IsRead);
+        Assert.Equal(1, service.UnreadCount);
+    }
+
+    [Fact]
+    public void MarkAsRead_WithNonExistentId_DoesNotThrow()
+    {
+        var service = NotificationService.Instance;
+        service.ShowInfo("Something");
+        ProcessDispatcherJobs();
+
+        service.MarkAsRead(Guid.NewGuid());
+        ProcessDispatcherJobs();
+
+        Assert.Equal(1, service.UnreadCount);
+    }
+
+    [Fact]
+    public void Dismiss_RemovesFromActiveNotifications()
+    {
+        var service = NotificationService.Instance;
+        service.ShowInfo("Dismissable");
+        ProcessDispatcherJobs();
+
+        var toast = service.Notifications.First();
+        service.Dismiss(toast);
+        ProcessDispatcherJobs();
+
+        Assert.Empty(service.Notifications);
+        Assert.Single(service.NotificationHistory);
+    }
+
+    [Fact]
+    public void DismissAll_ClearsAllActiveNotifications()
+    {
+        var service = NotificationService.Instance;
+        service.ShowInfo("First");
+        service.ShowWarning("Second");
+        ProcessDispatcherJobs();
+
+        service.DismissAll();
+        ProcessDispatcherJobs();
+
+        Assert.Empty(service.Notifications);
+        Assert.Equal(2, service.NotificationHistory.Count);
+    }
+
+    [Fact]
+    public void ClearHistory_RemovesAllHistoryEntries()
+    {
+        var service = NotificationService.Instance;
+        service.ShowInfo("First");
+        service.ShowWarning("Second");
+        ProcessDispatcherJobs();
+
+        service.ClearHistory();
+        ProcessDispatcherJobs();
+
+        Assert.Empty(service.NotificationHistory);
+        Assert.Equal(0, service.UnreadCount);
+    }
+
     public void Dispose()
     {
         ResetSingleton();
@@ -166,6 +256,14 @@ public sealed class NotificationServiceTests : IDisposable
 
     private static void ResetSingleton()
     {
+        // Clear all notifications and timers from the current instance before resetting
+        var currentInstance = NotificationService.Instance;
+        if (currentInstance != null)
+        {
+            currentInstance.ClearAllForTests();
+            ProcessDispatcherJobs(); // Ensure all pending dismissals are processed
+        }
+
         var field = typeof(NotificationService).GetField("_instance", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
         field?.SetValue(null, null);
     }
@@ -206,30 +304,18 @@ public sealed class NotificationServiceTests : IDisposable
 
     private sealed class NotificationHistoryScope : IDisposable
     {
-        private readonly string? _backupPath;
-        private readonly bool _hadExisting;
+        private readonly string? _previousOverride;
+        private readonly string? _previousAutoDismiss;
 
         public NotificationHistoryScope(bool clearHistory)
         {
-            var directory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "MIC",
-                "notifications");
-            Directory.CreateDirectory(directory);
+            _previousOverride = Environment.GetEnvironmentVariable("MIC_NOTIFICATION_HISTORY_PATH");
+            _previousAutoDismiss = Environment.GetEnvironmentVariable("MIC_NOTIFICATION_DISABLE_AUTODISMISS");
+            HistoryPath = Path.Combine(Path.GetTempPath(), $"mic-history-{Guid.NewGuid():N}.json");
+            Environment.SetEnvironmentVariable("MIC_NOTIFICATION_HISTORY_PATH", HistoryPath);
+            Environment.SetEnvironmentVariable("MIC_NOTIFICATION_DISABLE_AUTODISMISS", "1");
 
-            HistoryPath = Path.Combine(directory, "history.json");
-
-            if (File.Exists(HistoryPath))
-            {
-                _backupPath = Path.Combine(Path.GetTempPath(), $"mic-history-backup-{Guid.NewGuid():N}.json");
-                File.Copy(HistoryPath, _backupPath, overwrite: true);
-                _hadExisting = true;
-                if (clearHistory)
-                {
-                    File.Delete(HistoryPath);
-                }
-            }
-            else if (clearHistory && File.Exists(HistoryPath))
+            if (clearHistory && File.Exists(HistoryPath))
             {
                 File.Delete(HistoryPath);
             }
@@ -241,23 +327,19 @@ public sealed class NotificationServiceTests : IDisposable
         {
             try
             {
-                if (_hadExisting && _backupPath is not null)
-                {
-                    File.Copy(_backupPath, HistoryPath, overwrite: true);
-                    File.Delete(_backupPath);
-                }
-                else if (File.Exists(HistoryPath))
+                if (File.Exists(HistoryPath))
                 {
                     File.Delete(HistoryPath);
-                }
-                else if (_backupPath is not null && File.Exists(_backupPath))
-                {
-                    File.Delete(_backupPath);
                 }
             }
             catch
             {
                 // Avoid masking test failures with cleanup errors.
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("MIC_NOTIFICATION_HISTORY_PATH", _previousOverride);
+                Environment.SetEnvironmentVariable("MIC_NOTIFICATION_DISABLE_AUTODISMISS", _previousAutoDismiss);
             }
         }
     }

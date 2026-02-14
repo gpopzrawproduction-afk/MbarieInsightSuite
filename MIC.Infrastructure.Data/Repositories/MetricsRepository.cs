@@ -95,4 +95,32 @@ public class MetricsRepository : Repository<OperationalMetric>, IMetricsReposito
             .OrderByDescending(m => m.Timestamp)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<dynamic>> GetMetricsByNameAndDateRangeAsync(
+        string metricName,
+        DateTime from,
+        DateTime to,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(m => m.MetricName == metricName && m.Timestamp >= from && m.Timestamp <= to)
+            .OrderBy(m => m.Timestamp)
+            .Select(m => new
+            {
+                m.Timestamp,
+                m.Value
+            } as dynamic)
+            .Cast<dynamic>()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<string>> GetDistinctMetricNamesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Select(m => m.MetricName)
+            .Distinct()
+            .OrderBy(n => n)
+            .ToListAsync(cancellationToken);
+    }
 }

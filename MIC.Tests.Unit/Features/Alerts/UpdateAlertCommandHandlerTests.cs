@@ -193,6 +193,99 @@ public class UpdateAlertCommandHandlerTests
         alert.Context["Notes"].Should().NotBeNull();
     }
 
+    [Fact]
+    public async Task Handle_ResolveWithoutNotes_ReturnsValidationError()
+    {
+        var alertId = Guid.NewGuid();
+        var alert = CreateTestAlert(alertId, "Test Alert", AlertSeverity.Warning);
+        alert.Acknowledge("admin");
+
+        var command = new UpdateAlertCommand
+        {
+            AlertId = alertId,
+            NewStatus = AlertStatus.Resolved,
+            ResolutionNotes = null,
+            UpdatedBy = "test-user"
+        };
+
+        _alertRepository.GetByIdAsync(alertId, Arg.Any<CancellationToken>()).Returns(alert);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("Alert.ResolutionRequired");
+    }
+
+    [Fact]
+    public async Task Handle_ResolveWithNotes_ReturnsSuccess()
+    {
+        var alertId = Guid.NewGuid();
+        var alert = CreateTestAlert(alertId, "Test Alert", AlertSeverity.Warning);
+        alert.Acknowledge("admin");
+
+        var command = new UpdateAlertCommand
+        {
+            AlertId = alertId,
+            NewStatus = AlertStatus.Resolved,
+            ResolutionNotes = "Fixed the issue",
+            UpdatedBy = "test-user"
+        };
+
+        _alertRepository.GetByIdAsync(alertId, Arg.Any<CancellationToken>()).Returns(alert);
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_EscalateAlert_AddsEscalationContext()
+    {
+        var alertId = Guid.NewGuid();
+        var alert = CreateTestAlert(alertId, "Test Alert", AlertSeverity.Critical);
+
+        var command = new UpdateAlertCommand
+        {
+            AlertId = alertId,
+            NewStatus = AlertStatus.Escalated,
+            UpdatedBy = "test-user"
+        };
+
+        _alertRepository.GetByIdAsync(alertId, Arg.Any<CancellationToken>()).Returns(alert);
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        alert.Context.Should().ContainKey("EscalatedAt");
+        alert.Context.Should().ContainKey("EscalatedBy");
+    }
+
+    [Fact]
+    public async Task Handle_ReactivateFromResolved_ReturnsInvalidTransition()
+    {
+        var alertId = Guid.NewGuid();
+        var alert = CreateTestAlert(alertId, "Test Alert", AlertSeverity.Warning);
+        alert.Acknowledge("admin");
+        alert.Resolve("admin", "Fixed");
+
+        var command = new UpdateAlertCommand
+        {
+            AlertId = alertId,
+            NewStatus = AlertStatus.Active,
+            UpdatedBy = "test-user"
+        };
+
+        _alertRepository.GetByIdAsync(alertId, Arg.Any<CancellationToken>()).Returns(alert);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("Alert.InvalidStatusTransition");
+    }
+
     private static IntelligenceAlert CreateTestAlert(
         Guid id,
         string name,

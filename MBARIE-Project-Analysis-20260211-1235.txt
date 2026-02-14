@@ -1,0 +1,145 @@
+﻿================================================================================
+MBARIE INTELLIGENCE CONSOLE - COMPLETE PROJECT ANALYSIS
+Generated: 2026-02-11 12:35:10
+Root Path: C:\MbarieIntelligenceConsole\src\MIC
+================================================================================
+
+Solution File : MIC.slnx
+Location      : C:\MbarieIntelligenceConsole\src\MIC
+Size          : 1.02 KB
+Modified      : 02/07/2026 06:42:38
+
+Total Projects: 16
+Projects:
+  - Project(s)
+  - ----------
+  - MIC.Core.Application\MIC.Core.Application.csproj
+  - MIC.Core.Domain\MIC.Core.Domain.csproj
+  - MIC.Core.Intelligence\MIC.Core.Intelligence.csproj
+  - MIC.Desktop.Avalonia\MIC.Desktop.Avalonia.csproj
+  - MIC.Infrastructure.AI\MIC.Infrastructure.AI.csproj
+  - MIC.Infrastructure.Data\MIC.Infrastructure.Data.csproj
+  - MIC.Infrastructure.Identity\MIC.Infrastructure.Identity.csproj
+  - MIC.Infrastructure.Monitoring\MIC.Infrastructure.Monitoring.csproj
+  - MIC.Services.Analytics\MIC.Services.Analytics.csproj
+  - MIC.Services.Gateway\MIC.Services.Gateway.csproj
+  - MIC.Services.Intelligence\MIC.Services.Intelligence.csproj
+  - MIC.Tests.E2E\MIC.Tests.E2E.csproj
+  - MIC.Tests.Integration\MIC.Tests.Integration.csproj
+  - MIC.Tests.Unit\MIC.Tests.Unit.csproj
+[PROJECT] MIC.Console
+  C# Files     :  (1.53 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 3
+  Total Size   : 1.53 KB
+  Project File : MIC.Console.csproj (0.84 KB)
+
+[PROJECT] MIC.Core.Application
+  C# Files     : 81 (129.15 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 7
+  Total Size   : 129.15 KB
+  Project File : MIC.Core.Application.csproj (0.79 KB)
+
+[PROJECT] MIC.Core.Domain
+  C# Files     : 25 (75.31 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 7
+  Total Size   : 75.31 KB
+  Project File : MIC.Core.Domain.csproj (0.32 KB)
+
+[PROJECT] MIC.Core.Intelligence
+  C# Files     : 11 (60.04 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 7
+  Total Size   : 60.04 KB
+  Project File : MIC.Core.Intelligence.csproj (0.7 KB)
+
+[PROJECT] MIC.Desktop.Avalonia
+  C# Files     : 95 (456.24 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 16
+  Total Size   : 456.24 KB
+  Project File : MIC.Desktop.Avalonia.csproj (3.41 KB)
+
+[PROJECT] MIC.Infrastructure.AI
+  C# Files     : 20 (59 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 7
+  Total Size   : 59 KB
+  Project File : MIC.Infrastructure.AI.csproj (1.38 KB)
+
+[PROJECT] MIC.Infrastructure.Data
+  C# Files     : 40 (310.05 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 10
+  Total Size   : 310.05 KB
+  Project File : MIC.Infrastructure.Data.csproj (1.93 KB)
+
+[PROJECT] MIC.Infrastructure.Identity
+  C# Files     : 19 (67.13 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 7
+  Total Size   : 67.13 KB
+  Project File : MIC.Infrastructure.Identity.csproj (1.28 KB)
+
+[PROJECT] MIC.Infrastructure.Monitoring
+  C# Files     : 8 (13.05 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 7
+  Total Size   : 13.05 KB
+  Project File : MIC.Infrastructure.Monitoring.csproj (0.53 KB)
+
+[PROJECT] MIC.Services.Analytics
+  C# Files     : 9 (5.85 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 35
+  Total Size   : 5.85 KB
+  Project File : MIC.Services.Analytics.csproj (0.33 KB)
+
+[PROJECT] MIC.Services.Gateway
+  C# Files     : 9 (5.84 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 35
+  Total Size   : 5.84 KB
+  Project File : MIC.Services.Gateway.csproj (0.33 KB)
+
+[PROJECT] MIC.Services.Intelligence
+  C# Files     : 9 (5.87 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 35
+  Total Size   : 5.87 KB
+  Project File : MIC.Services.Intelligence.csproj (0.33 KB)
+
+[PROJECT] MIC.Tests.E2E
+  C# Files     : 7 (2.99 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 15
+  Total Size   : 2.99 KB
+  Project File : MIC.Tests.E2E.csproj (0.62 KB)
+
+[PROJECT] MIC.Tests.Integration
+  C# Files     : 14 (41.29 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 19
+  Total Size   : 41.29 KB
+  Project File : MIC.Tests.Integration.csproj (2.13 KB)
+
+[PROJECT] MIC.Tests.Unit
+  C# Files     : 91 (704.16 KB)
+  XAML Files   :  (0 KB)
+  Config Files : 15
+  Total Size   : 704.16 KB
+  Project File : MIC.Tests.Unit.csproj (1.5 KB)
+
+[IMPLEMENTED] Semantic Kernel -> MIC.Infrastructure.AI\Services\SemanticKernelConfig.cs
+[IMPLEMENTED] AI Service -> MIC.Infrastructure.AI\Services\ChatService.cs
+[PENDING] Email Inbox -> MIC.Desktop.Avalonia\Views\EmailInboxView.axaml
+[IMPLEMENTED] Chat Interface -> MIC.Desktop.Avalonia\Views\ChatView.axaml
+[IMPLEMENTED] Email Service -> MIC.Infrastructure.Data\Repositories\EmailRepository.cs
+[IMPLEMENTED] Dashboard -> MIC.Desktop.Avalonia\Views\DashboardView.axaml
+[IMPLEMENTED] Metrics -> MIC.Core.Application\Metrics
+[IMPLEMENTED] Alerts -> MIC.Core.Application\Alerts
+Total C# Files   : 443
+Total XAML Files : 
+Total LOC (C#)   : 49418

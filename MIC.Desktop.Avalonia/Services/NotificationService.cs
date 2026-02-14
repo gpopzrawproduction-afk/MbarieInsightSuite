@@ -123,15 +123,39 @@ public class NotificationService : INotificationService
 
     public void Dismiss(ToastNotification notification)
     {
-        if (Notifications.Contains(notification))
+        // Thread-safe dismissal to prevent race conditions with auto-dismiss timers
+        Dispatcher.UIThread.Post(() =>
         {
-            Notifications.Remove(notification);
-        }
+            try
+            {
+                if (Notifications.Contains(notification))
+                {
+                    Notifications.Remove(notification);
+                }
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Notification was already removed by another timer/thread - safe to ignore
+            }
+        });
     }
 
     public void DismissAll()
     {
-        Notifications.Clear();
+        Dispatcher.UIThread.Post(() => Notifications.Clear());
+    }
+
+    /// <summary>
+    /// Clears all notifications and history. Intended for test cleanup.
+    /// </summary>
+    public void ClearAllForTests()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            Notifications.Clear();
+            _history.Clear();
+            NotifyHistoryChanged();
+        });
     }
 
     public void MarkAsRead(Guid notificationId)
@@ -205,8 +229,8 @@ public class NotificationService : INotificationService
 
             AddToHistory(notification);
 
-            // Auto-dismiss after duration
-            if (notification.Duration > TimeSpan.Zero)
+            // Auto-dismiss after duration unless tests disable timers
+            if (!IsAutoDismissDisabled() && notification.Duration > TimeSpan.Zero)
             {
                 Observable.Timer(notification.Duration)
                     .ObserveOn(RxApp.MainThreadScheduler)
@@ -246,7 +270,15 @@ public class NotificationService : INotificationService
         const int maxHistoryItems = 100;
         while (_history.Count > maxHistoryItems)
         {
-            _history.RemoveAt(_history.Count - 1);
+            var lastIndex = _history.Count - 1;
+            if (lastIndex >= 0 && lastIndex < _history.Count)
+            {
+                _history.RemoveAt(lastIndex);
+            }
+            else
+            {
+                break; // Safety: stop if index out of range
+            }
         }
     }
 
@@ -255,8 +287,26 @@ public class NotificationService : INotificationService
         HistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    private static bool IsAutoDismissDisabled()
+    {
+        var flag = Environment.GetEnvironmentVariable("MIC_NOTIFICATION_DISABLE_AUTODISMISS");
+        return string.Equals(flag, "1", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(flag, "true", StringComparison.OrdinalIgnoreCase);
+    }
+
     private string BuildHistoryPath()
     {
+        var overridePath = Environment.GetEnvironmentVariable("MIC_NOTIFICATION_HISTORY_PATH");
+        if (!string.IsNullOrWhiteSpace(overridePath))
+        {
+            var directory = Path.GetDirectoryName(overridePath);
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            return overridePath;
+        }
+
         var basePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MIC",

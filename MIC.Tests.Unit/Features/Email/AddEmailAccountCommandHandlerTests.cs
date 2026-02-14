@@ -150,6 +150,75 @@ public class AddEmailAccountCommandHandlerTests
         result.FirstError.Description.Should().Contain("db down");
     }
 
+    [Fact]
+    public async Task Handle_WithEmptyUserId_ReturnsValidationError()
+    {
+        var command = CreateOAuthCommand() with { UserId = Guid.Empty };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Validation);
+        result.FirstError.Code.Should().Contain("UserId");
+    }
+
+    [Fact]
+    public async Task Handle_WithInvalidEmailFormat_ReturnsValidationError()
+    {
+        var command = CreateOAuthCommand() with { EmailAddress = "not-an-email" };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Validation);
+    }
+
+    [Fact]
+    public async Task Handle_WithOAuthMissingAccessToken_ReturnsValidationError()
+    {
+        var command = CreateOAuthCommand() with { AccessToken = null };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Validation);
+        result.FirstError.Code.Should().Contain("AccessToken");
+    }
+
+    [Fact]
+    public async Task Handle_WithNewImapAccount_PersistsAccountWithCredentials()
+    {
+        var command = new AddEmailAccountCommand
+        {
+            UserId = Guid.NewGuid(),
+            EmailAddress = "user@custom.com",
+            AccountName = "Custom IMAP",
+            Provider = EmailProvider.IMAP.ToString(),
+            ImapServer = "imap.custom.com",
+            ImapPort = 993,
+            SmtpServer = "smtp.custom.com",
+            SmtpPort = 465,
+            Password = "secret",
+            UseSsl = true
+        };
+
+        EmailAccount? persisted = null;
+        _emailAccountRepository
+            .GetByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<EmailAccount>>(Array.Empty<EmailAccount>()));
+        _emailAccountRepository
+            .AddAsync(Arg.Do<EmailAccount>(a => persisted = a), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        persisted.Should().NotBeNull();
+        persisted!.Provider.Should().Be(EmailProvider.IMAP);
+        await _emailAccountRepository.Received(1).AddAsync(Arg.Any<EmailAccount>(), Arg.Any<CancellationToken>());
+    }
+
     private static AddEmailAccountCommand CreateOAuthCommand()
     {
         return new AddEmailAccountCommand

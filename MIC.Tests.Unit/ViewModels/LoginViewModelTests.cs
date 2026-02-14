@@ -20,7 +20,7 @@ public class LoginViewModelTests
     public LoginViewModelTests()
     {
         _mockAuthService = Substitute.For<IAuthenticationService>();
-        _sut = new LoginViewModel(_mockAuthService);
+        _sut = new LoginViewModel(_mockAuthService, () => Task.CompletedTask);
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public class LoginViewModelTests
         _sut.IsLoading.Should().BeFalse();
     }
 
-    [Fact(Skip = "UI thread issue in ShowFirstTimeSetupDialogAsync - needs proper UI thread mocking")]
+    [Fact]
     public async Task RegisterCommand_ExecutesRegistration_WhenSuccessful()
     {
         // Arrange
@@ -324,6 +324,13 @@ public class LoginViewModelTests
         _mockAuthService.RegisterAsync("newuser", "new@example.com", "password123", "New User")
             .Returns(Task.FromResult(registerResult));
 
+        _mockAuthService.LoginAsync("newuser", "password123").Returns(Task.FromResult(new AuthenticationResult
+        {
+            Success = true,
+            User = registerResult.User!,
+            Token = "auto-login-token"
+        }));
+
         // Act
         await _sut.RegisterCommand.Execute().ToTask();
 
@@ -339,7 +346,7 @@ public class LoginViewModelTests
         _sut.RegisterFullName.Should().BeEmpty();
     }
 
-    [Fact(Skip = "UI thread issue in ShowFirstTimeSetupDialogAsync - needs proper UI thread mocking")]
+    [Fact]
     public async Task RegisterCommand_SetsErrorMessage_WhenRegistrationFails()
     {
         // Arrange
@@ -377,4 +384,180 @@ public class LoginViewModelTests
         // Assert
         _sut.ErrorMessage.Should().BeEmpty();
     }
+
+    #region Additional Coverage Tests
+
+    [Fact]
+    public void Constructor_ThrowsOnNullAuthService()
+    {
+        var act = () => new LoginViewModel(null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void Constructor_AcceptsNullFirstTimeSetupLauncher()
+    {
+        var vm = new LoginViewModel(_mockAuthService, null);
+        vm.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task RegisterCommand_ExceptionDuringRegistration_SetsErrorMessage()
+    {
+        // Arrange
+        _sut.RegisterUsername = "newuser";
+        _sut.RegisterEmail = "new@example.com";
+        _sut.RegisterPassword = "password123";
+        _sut.RegisterConfirmPassword = "password123";
+
+        _mockAuthService.RegisterAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+            .Returns(Task.FromException<AuthenticationResult>(new Exception("Network failure")));
+
+        // Act
+        await _sut.RegisterCommand.Execute().ToTask();
+
+        // Assert
+        _sut.ErrorMessage.Should().Contain("Registration error");
+        _sut.IsLoading.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RegisterCommand_EmptyFullName_UsesUsernameAsFullName()
+    {
+        // Arrange
+        _sut.RegisterUsername = "newuser";
+        _sut.RegisterEmail = "new@example.com";
+        _sut.RegisterPassword = "password123";
+        _sut.RegisterConfirmPassword = "password123";
+        _sut.RegisterFullName = ""; // empty full name
+
+        var registerResult = new AuthenticationResult
+        {
+            Success = true,
+            User = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "newuser",
+                Email = "new@example.com"
+            }
+        };
+        _mockAuthService.RegisterAsync("newuser", "new@example.com", "password123", "newuser")
+            .Returns(Task.FromResult(registerResult));
+        _mockAuthService.LoginAsync("newuser", "password123").Returns(Task.FromResult(new AuthenticationResult
+        {
+            Success = true, User = registerResult.User!, Token = "token"
+        }));
+
+        // Act
+        await _sut.RegisterCommand.Execute().ToTask();
+
+        // Assert - fullName should default to username ("newuser")
+        await _mockAuthService.Received(1).RegisterAsync("newuser", "new@example.com", "password123", "newuser");
+    }
+
+    [Fact]
+    public async Task LoginCommand_SuccessWithNoErrorMessage_DefaultsToInvalidCredentials()
+    {
+        // Arrange
+        _sut.Username = "testuser";
+        _sut.Password = "password";
+
+        var loginResult = new AuthenticationResult
+        {
+            Success = false,
+            ErrorMessage = "" // empty error message
+        };
+        _mockAuthService.LoginAsync("testuser", "password").Returns(Task.FromResult(loginResult));
+
+        // Act
+        await _sut.LoginCommand.Execute().ToTask();
+
+        // Assert
+        _sut.ErrorMessage.Should().Be("Invalid username or password.");
+    }
+
+    [Fact]
+    public async Task ShowRegisterCommand_ClearsExistingErrorMessage()
+    {
+        _sut.ErrorMessage = "Previous error";
+
+        await _sut.ShowRegisterCommand.Execute().ToTask();
+
+        _sut.ErrorMessage.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task BackToLoginCommand_ClearsExistingErrorMessage()
+    {
+        _sut.ShowRegistration = true;
+        _sut.ErrorMessage = "Registration error";
+
+        await _sut.BackToLoginCommand.Execute().ToTask();
+
+        _sut.ErrorMessage.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RegisterCommand_SuccessCallsFirstTimeSetupLauncher()
+    {
+        bool setupLaunched = false;
+        var vm = new LoginViewModel(_mockAuthService, () =>
+        {
+            setupLaunched = true;
+            return Task.CompletedTask;
+        });
+        vm.RegisterUsername = "newuser";
+        vm.RegisterEmail = "new@example.com";
+        vm.RegisterPassword = "password123";
+        vm.RegisterConfirmPassword = "password123";
+
+        var registerResult = new AuthenticationResult
+        {
+            Success = true,
+            User = new User { Id = Guid.NewGuid(), Username = "newuser", Email = "new@example.com" }
+        };
+        _mockAuthService.RegisterAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+            .Returns(Task.FromResult(registerResult));
+        _mockAuthService.LoginAsync(Arg.Any<string>(), Arg.Any<string>()).Returns(Task.FromResult(new AuthenticationResult
+        {
+            Success = true, User = registerResult.User!, Token = "token"
+        }));
+
+        await vm.RegisterCommand.Execute().ToTask();
+
+        setupLaunched.Should().BeTrue();
+    }
+
+    [Fact]
+    public void RememberMe_CanBeToggled()
+    {
+        _sut.RememberMe = false;
+        _sut.RememberMe.Should().BeFalse();
+
+        _sut.RememberMe = true;
+        _sut.RememberMe.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RegisterCommand_RegistrationFailsWithNullErrorMessage_DefaultsMessage()
+    {
+        _sut.RegisterUsername = "newuser";
+        _sut.RegisterEmail = "new@example.com";
+        _sut.RegisterPassword = "password123";
+        _sut.RegisterConfirmPassword = "password123";
+
+        var registerResult = new AuthenticationResult
+        {
+            Success = false,
+            ErrorMessage = null // null error message
+        };
+        _mockAuthService.RegisterAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+            .Returns(Task.FromResult(registerResult));
+
+        await _sut.RegisterCommand.Execute().ToTask();
+
+        _sut.ErrorMessage.Should().Contain("Registration failed");
+    }
+
+    #endregion
 }

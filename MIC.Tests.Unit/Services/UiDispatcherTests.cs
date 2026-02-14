@@ -94,8 +94,7 @@ public class UiDispatcherTests
     {
         // Arrange
         var dispatcher = AvaloniaUiDispatcher.Instance;
-        var executed = false;
-        Action action = () => { executed = true; };
+        Action action = () => { };
 
         // Act
         Action act = () => { var _ = dispatcher.RunAsync(action); };

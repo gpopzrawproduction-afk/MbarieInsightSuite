@@ -119,6 +119,210 @@ public class GmailOAuthServiceTests
         service.AuthenticateInvocations.Should().Be(1);
     }
 
+    #region Additional OAuth Edge Cases
+
+    [Fact]
+    public async Task GetGmailAccessTokenAsync_NoStoredToken_Authenticates()
+    {
+        var storage = new FakeTokenStorageService();
+        // No token seeded
+
+        var service = new TestGmailService(CreateConfiguration(), storage)
+        {
+            AuthenticateHandler = _ => Task.FromResult(new OAuthResult
+            {
+                Success = true,
+                AccessToken = "fresh-token",
+                EmailAddress = "new@example.com",
+                RefreshToken = "new-refresh",
+                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                Provider = EmailProvider.Gmail
+            })
+        };
+
+        var token = await service.GetGmailAccessTokenAsync("new@example.com");
+
+        token.Should().Be("fresh-token");
+        service.AuthenticateInvocations.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetGmailAccessTokenAsync_AuthenticationFails_ThrowsInvalidOperation()
+    {
+        var storage = new FakeTokenStorageService();
+
+        var service = new TestGmailService(CreateConfiguration(), storage)
+        {
+            AuthenticateHandler = _ => Task.FromResult(new OAuthResult
+            {
+                Success = false,
+                ErrorMessage = "User cancelled"
+            })
+        };
+
+        var act = () => service.GetGmailAccessTokenAsync("user@example.com");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*User cancelled*");
+    }
+
+    [Fact]
+    public async Task GetGmailAccessTokenAsync_AuthenticationThrows_PropagatesException()
+    {
+        var storage = new FakeTokenStorageService();
+
+        var service = new TestGmailService(CreateConfiguration(), storage)
+        {
+            AuthenticateHandler = _ => throw new TaskCanceledException("User cancelled")
+        };
+
+        var act = () => service.GetGmailAccessTokenAsync("user@example.com");
+
+        await act.Should().ThrowAsync<TaskCanceledException>();
+    }
+
+    [Fact]
+    public async Task GetGmailAccessTokenAsync_RefreshSucceeds_DoesNotAuthenticate()
+    {
+        var storage = new FakeTokenStorageService();
+        storage.Seed(new StoredOAuthToken
+        {
+            Provider = EmailProvider.Gmail,
+            AccountId = "user@example.com",
+            AccessToken = "old-token",
+            RefreshToken = "refresh-token",
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(1) // Expiring soon
+        });
+
+        var service = new TestGmailService(CreateConfiguration(), storage)
+        {
+            RefreshHandler = async (token, ct) =>
+            {
+                var refreshed = token with
+                {
+                    AccessToken = "refreshed-successfully",
+                    ExpiresAtUtc = DateTime.UtcNow.AddHours(1)
+                };
+                await storage.StoreTokenAsync(refreshed, ct);
+                return "refreshed-successfully";
+            },
+            AuthenticateHandler = _ => throw new InvalidOperationException("Should NOT authenticate")
+        };
+
+        var token = await service.GetGmailAccessTokenAsync("user@example.com");
+
+        token.Should().Be("refreshed-successfully");
+        service.AuthenticateInvocations.Should().Be(0);
+    }
+
+    [Fact]
+    public void Constructor_ReadsConfigurationValues()
+    {
+        var storage = new FakeTokenStorageService();
+        var config = CreateConfiguration();
+
+        var service = new TestGmailService(config, storage);
+
+        service.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetGmailAccessTokenAsync_ExpiredNoRefreshToken_Authenticates()
+    {
+        var storage = new FakeTokenStorageService();
+        storage.Seed(new StoredOAuthToken
+        {
+            Provider = EmailProvider.Gmail,
+            AccountId = "user@example.com",
+            AccessToken = "expired-token",
+            RefreshToken = null, // No refresh token
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-10) // Expired
+        });
+
+        var service = new TestGmailService(CreateConfiguration(), storage)
+        {
+            RefreshHandler = (_, _) => Task.FromResult<string?>(null),
+            AuthenticateHandler = _ => Task.FromResult(new OAuthResult
+            {
+                Success = true,
+                AccessToken = "new-token",
+                EmailAddress = "user@example.com",
+                RefreshToken = "new-refresh",
+                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                Provider = EmailProvider.Gmail
+            })
+        };
+
+        var token = await service.GetGmailAccessTokenAsync("user@example.com");
+
+        token.Should().Be("new-token");
+    }
+
+    #endregion
+
+    #region NotSupportedException Methods
+
+    [Fact]
+    public async Task AuthenticateOutlookAsync_ThrowsNotSupported()
+    {
+        var storage = new FakeTokenStorageService();
+        var service = new TestGmailService(CreateConfiguration(), storage);
+
+        var act = () => service.AuthenticateOutlookAsync();
+
+        await act.Should().ThrowAsync<NotSupportedException>();
+    }
+
+    [Fact]
+    public async Task GetOutlookAccessTokenAsync_ThrowsNotSupported()
+    {
+        var storage = new FakeTokenStorageService();
+        var service = new TestGmailService(CreateConfiguration(), storage);
+
+        var act = () => service.GetOutlookAccessTokenAsync("user@example.com");
+
+        await act.Should().ThrowAsync<NotSupportedException>();
+    }
+
+    [Fact]
+    public async Task AuthorizeOutlookAccountAsync_ThrowsNotSupported()
+    {
+        var storage = new FakeTokenStorageService();
+        var service = new TestGmailService(CreateConfiguration(), storage);
+
+        var act = () => service.AuthorizeOutlookAccountAsync();
+
+        await act.Should().ThrowAsync<NotSupportedException>();
+    }
+
+    #endregion
+
+    #region Input Validation
+
+    [Fact]
+    public async Task GetGmailAccessTokenAsync_EmptyEmail_ThrowsArgumentException()
+    {
+        var storage = new FakeTokenStorageService();
+        var service = new TestGmailService(CreateConfiguration(), storage);
+
+        var act = () => service.GetGmailAccessTokenAsync("");
+
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task GetGmailAccessTokenAsync_NullEmail_ThrowsArgumentException()
+    {
+        var storage = new FakeTokenStorageService();
+        var service = new TestGmailService(CreateConfiguration(), storage);
+
+        var act = () => service.GetGmailAccessTokenAsync(null!);
+
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    #endregion
+
     private sealed class TestGmailService : GmailOAuthService
     {
         private readonly FakeTokenStorageService _storage;

@@ -67,10 +67,9 @@ public class KeyboardShortcutServiceTests
     {
         // Arrange
         var service = new KeyboardShortcutService();
-        var eventInvoked = false;
 
         // Act & Assert
-        FluentActions.Invoking(() => service.OnOpenCommandPalette += () => { eventInvoked = true; })
+        FluentActions.Invoking(() => service.OnOpenCommandPalette += () => { })
             .Should().NotThrow();
     }
 
@@ -79,10 +78,9 @@ public class KeyboardShortcutServiceTests
     {
         // Arrange
         var service = new KeyboardShortcutService();
-        var eventInvoked = false;
 
         // Act & Assert
-        FluentActions.Invoking(() => service.OnRefresh += () => { eventInvoked = true; })
+        FluentActions.Invoking(() => service.OnRefresh += () => { })
             .Should().NotThrow();
     }
 
@@ -91,10 +89,9 @@ public class KeyboardShortcutServiceTests
     {
         // Arrange
         var service = new KeyboardShortcutService();
-        var eventInvoked = false;
 
         // Act & Assert
-        FluentActions.Invoking(() => service.OnCreateNew += () => { eventInvoked = true; })
+        FluentActions.Invoking(() => service.OnCreateNew += () => { })
             .Should().NotThrow();
     }
 
@@ -103,10 +100,9 @@ public class KeyboardShortcutServiceTests
     {
         // Arrange
         var service = new KeyboardShortcutService();
-        var eventInvoked = false;
 
         // Act & Assert
-        FluentActions.Invoking(() => service.OnToggleTheme += () => { eventInvoked = true; })
+        FluentActions.Invoking(() => service.OnToggleTheme += () => { })
             .Should().NotThrow();
     }
 
@@ -115,10 +111,9 @@ public class KeyboardShortcutServiceTests
     {
         // Arrange
         var service = new KeyboardShortcutService();
-        var eventInvoked = false;
 
         // Act & Assert
-        FluentActions.Invoking(() => service.OnExport += () => { eventInvoked = true; })
+        FluentActions.Invoking(() => service.OnExport += () => { })
             .Should().NotThrow();
     }
 
@@ -127,10 +122,9 @@ public class KeyboardShortcutServiceTests
     {
         // Arrange
         var service = new KeyboardShortcutService();
-        var eventInvoked = false;
 
         // Act & Assert
-        FluentActions.Invoking(() => service.OnSearch += () => { eventInvoked = true; })
+        FluentActions.Invoking(() => service.OnSearch += () => { })
             .Should().NotThrow();
     }
 

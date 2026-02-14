@@ -231,7 +231,7 @@ public class SettingsHandlersTests
         var query = new GetSettingsQuery { UserId = _testUserId };
 
         _mockSettingsService.Setup(x => x.LoadUserSettingsAsync(_testUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((AppSettings?)null);
+            .ReturnsAsync((AppSettings)null!);
 
         var handler = new GetSettingsQueryHandler(_mockSettingsService.Object, _mockGetLogger.Object);
 

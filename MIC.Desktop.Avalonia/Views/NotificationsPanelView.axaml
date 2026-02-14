@@ -1,0 +1,277 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:MIC.Desktop.Avalonia.ViewModels"
+             x:Class="MIC.Desktop.Avalonia.Views.NotificationsPanelView"
+             Width="380">
+
+  <!-- Slide transition: open=translate(0,0) / closed=translate(380,0) -->
+  <UserControl.Transitions>
+    <Transitions>
+      <TransformOperationsTransition Property="RenderTransform"
+                                      Duration="0:0:0.3"
+                                      Easing="CubicEaseOut"/>
+      <DoubleTransition Property="Opacity" Duration="0:0:0.25"/>
+    </Transitions>
+  </UserControl.Transitions>
+
+  <UserControl.Styles>
+    <!-- Filter pill styles -->
+    <Style Selector="Button.filter-pill">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="#00E5FF26"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="20"/>
+      <Setter Property="Foreground" Value="#4A5568"/>
+      <Setter Property="FontFamily" Value="Exo 2"/>
+      <Setter Property="FontSize" Value="10"/>
+      <Setter Property="Padding" Value="10,4"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.filter-pill.active">
+      <Setter Property="Background" Value="#00E5FF"/>
+      <Setter Property="BorderBrush" Value="#00E5FF"/>
+      <Setter Property="Foreground" Value="#0B0C10"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+
+    <!-- Notification item -->
+    <Style Selector="Border.notif-item">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Padding" Value="12,10"/>
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.15"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Border.notif-item:pointerover">
+      <Setter Property="Background" Value="#1F283366"/>
+    </Style>
+    <Style Selector="Border.notif-item.unread">
+      <Setter Property="Background" Value="#00E5FF08"/>
+    </Style>
+
+    <!-- Dismiss button -->
+    <Style Selector="Button.dismiss-btn">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#4A5568"/>
+      <Setter Property="Padding" Value="4"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <Style Selector="Border.notif-item:pointerover Button.dismiss-btn">
+      <Setter Property="IsVisible" Value="True"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Background="#1F2833"
+          BorderBrush="#00E5FF40"
+          BorderThickness="1,0,0,0"
+          BoxShadow="-4 0 30 0 #1A00E5FF">
+
+    <DockPanel>
+
+      <!-- ?? HEADER ???????????????????????????????????????????????????? -->
+      <Border DockPanel.Dock="Top"
+              BorderBrush="#00E5FF1A"
+              BorderThickness="0,0,0,1"
+              Padding="16,12">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+
+          <!-- Title + Badge -->
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="NOTIFICATIONS"
+                       FontFamily="Rajdhani" FontSize="18" FontWeight="Bold"
+                       Foreground="#00E5FF" VerticalAlignment="Center"/>
+            <!-- Unread badge -->
+            <Border Background="#00E5FF"
+                    CornerRadius="10"
+                    Padding="6,2"
+                    IsVisible="{Binding HasUnread}">
+              <TextBlock Text="{Binding UnreadCount}"
+                         FontFamily="Exo 2" FontSize="10" FontWeight="Bold"
+                         Foreground="#0B0C10"/>
+            </Border>
+          </StackPanel>
+
+          <!-- Mark All Read -->
+          <Button Grid.Column="1"
+                  Content="MARK ALL READ"
+                  IsVisible="{Binding HasUnread}"
+                  Command="{Binding MarkAllReadCommand}"
+                  Foreground="#66FCF1"
+                  Background="Transparent"
+                  FontFamily="Exo 2" FontSize="10"
+                  Padding="8,4"
+                  Margin="0,0,8,0"
+                  Cursor="Hand"/>
+
+          <!-- Settings icon -->
+          <Button Grid.Column="2"
+                  Content="?"
+                  Foreground="#4A5568"
+                  Background="Transparent"
+                  Padding="6"
+                  Margin="0,0,4,0"
+                  FontSize="14"
+                  Cursor="Hand"/>
+
+          <!-- Close button -->
+          <Button Grid.Column="3"
+                  Content="?"
+                  Command="{Binding ClosePanelCommand}"
+                  Foreground="#4A5568"
+                  Background="Transparent"
+                  Padding="6"
+                  FontSize="14"
+                  Cursor="Hand"/>
+        </Grid>
+      </Border>
+
+      <!-- ?? FILTER TABS ??????????????????????????????????????????????? -->
+      <ScrollViewer DockPanel.Dock="Top"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Disabled"
+                    Padding="12,8">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <!-- ALL filter -->
+          <Button Content="ALL" Classes="filter-pill"
+                  Command="{Binding SetFilterCommand}"
+                  CommandParameter="{x:Null}"/>
+          <!-- Type filters -->
+          <Button Content="ALERTS"   Classes="filter-pill"
+                  Command="{Binding SetFilterCommand}"
+                  CommandParameter="0"/>
+          <Button Content="EMAIL"    Classes="filter-pill"
+                  Command="{Binding SetFilterCommand}"
+                  CommandParameter="1"/>
+          <Button Content="SYSTEM"   Classes="filter-pill"
+                  Command="{Binding SetFilterCommand}"
+                  CommandParameter="2"/>
+          <Button Content="AI"       Classes="filter-pill"
+                  Command="{Binding SetFilterCommand}"
+                  CommandParameter="3"/>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- ?? NOTIFICATION LIST ????????????????????????????????????????? -->
+
+      <!-- Loading skeleton -->
+      <StackPanel DockPanel.Dock="Top"
+                  IsVisible="{Binding IsLoading}"
+                  Spacing="2" Margin="12,8">
+        <Border Height="56" Background="#1F283366" CornerRadius="4"
+                Opacity="0.3"/>
+        <Border Height="56" Background="#1F283366" CornerRadius="4"
+                Opacity="0.2"/>
+        <Border Height="56" Background="#1F283366" CornerRadius="4"
+                Opacity="0.1"/>
+      </StackPanel>
+
+      <!-- Empty state -->
+      <StackPanel IsVisible="{Binding !HasNotifications}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Spacing="12"
+                  Margin="0,60,0,0">
+        <TextBlock Text="??"
+                   FontSize="48" HorizontalAlignment="Center" Opacity="0.2"/>
+        <TextBlock Text="ALL CAUGHT UP"
+                   FontFamily="Rajdhani" FontSize="20"
+                   Foreground="#4A5568" HorizontalAlignment="Center"/>
+        <TextBlock Text="No notifications to show"
+                   FontFamily="Exo 2" FontSize="12"
+                   Foreground="#4A5568" HorizontalAlignment="Center"/>
+      </StackPanel>
+
+      <!-- Grouped list -->
+      <ScrollViewer IsVisible="{Binding HasNotifications}">
+        <ItemsControl Items="{Binding GroupedNotifications}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:NotificationGroupDto">
+              <StackPanel>
+
+                <!-- Date group header -->
+                <TextBlock Text="{Binding GroupLabel}"
+                           FontFamily="Exo 2" FontSize="10"
+                           Foreground="#4A5568" LetterSpacing="2"
+                           Margin="16,12,16,4"/>
+
+                <!-- Notifications in this group -->
+                <ItemsControl Items="{Binding Items}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Classes="notif-item"
+                              Classes.unread="{Binding !IsRead}">
+                        <Grid ColumnDefinitions="36,*,Auto">
+
+                          <!-- Icon circle -->
+                          <Border Grid.Column="0"
+                                  Width="32" Height="32"
+                                  CornerRadius="16"
+                                  Background="{Binding IconColor}"
+                                  VerticalAlignment="Top"
+                                  Margin="0,2,10,0">
+                            <TextBlock Text="?"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="White"
+                                       FontSize="10"/>
+                          </Border>
+
+                          <!-- Content -->
+                          <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Text="{Binding Title}"
+                                       FontFamily="Exo 2"
+                                       FontWeight="{Binding IsRead,
+                                         Converter={StaticResource BoolToFontWeightConverter},
+                                         ConverterParameter='Normal|Bold'}"
+                                       FontSize="13"
+                                       Foreground="#C5C6C7"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding Message}"
+                                       FontFamily="Exo 2"
+                                       FontSize="11"
+                                       Foreground="#4A5568"
+                                       MaxLines="2"
+                                       TextTrimming="CharacterEllipsis"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding TimeAgo}"
+                                       FontFamily="Cascadia Code, Consolas"
+                                       FontSize="10"
+                                       Foreground="#4A5568"
+                                       Margin="0,2,0,0"/>
+                          </StackPanel>
+
+                          <!-- Right: unread dot + dismiss -->
+                          <StackPanel Grid.Column="2" Spacing="4"
+                                      VerticalAlignment="Top"
+                                      HorizontalAlignment="Right">
+                            <!-- Unread dot -->
+                            <Ellipse Width="8" Height="8"
+                                     Fill="#00E5FF"
+                                     IsVisible="{Binding !IsRead}"
+                                     Margin="0,4,0,0"/>
+                            <!-- Dismiss button (shown on hover via Style) -->
+                            <Button Classes="dismiss-btn"
+                                    Content="?"
+                                    Command="{Binding $parent[UserControl].DataContext.DismissCommand}"
+                                    CommandParameter="{Binding}"/>
+                          </StackPanel>
+
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+
+    </DockPanel>
+  </Border>
+</UserControl>
